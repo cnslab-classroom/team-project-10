@@ -13,6 +13,6 @@ public class Test {
             {0,0,0,0,1,1},
             {0,0,0,0,1,0},
         };
-        new CellularAutomata(6, 5, 0, false).test(map);
+        new CellularAutomata(6, 5, 0, false, 0L).test(map);
     }
 }
