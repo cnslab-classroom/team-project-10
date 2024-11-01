@@ -1,12 +1,17 @@
 package oop.pcg2d.utility;
 
 public class Pair {
-    private final int x;
-    private final int y;
+    private int x;
+    private int y;
 
     public Pair(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public Pair(Pair other) {
+        this.x = other.x;
+        this.y = other.y;
     }
 
     public int getX() {
@@ -15,6 +20,14 @@ public class Pair {
 
     public int getY() {
         return y;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public boolean equals(Pair other) {
