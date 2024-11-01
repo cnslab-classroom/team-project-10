@@ -145,57 +145,72 @@ public class CellularAutomata {
     private void connectTwoRooms(int index1, int index2) {
         // 두개의 방에서 각각 임의의 타일을 선택하고 가중치가 부여된 random walk를 사용
         // 목표 지점으로 향하는 방향에 대해 더 많은 가중치를 부여
-        final int LARGE_WEIGHT = 4;
-        final int SMALL_WEIGHT = 1;
+        final int LARGE_WEIGHT = 10; // 큰 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
+        final int SMALL_WEIGHT = 1; // 작은 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
 
-        Pair[] directions = {
-            new Pair(-1, 0), // 서
-            new Pair(1, 0), // 동
-            new Pair(0, -1), // 북
-            new Pair(-0, 1) // 남
-        };
-        int[] dirWeight = new int[4];
-        int randomNumber = 0;
+        enum Direction {
+            NORTH(0, -1),
+            SOUTH(0, 1),
+            EAST(1, 0),
+            WEST(-1, 0);
+
+            public final int X_OFFSET;
+            public final int Y_OFFSET;
+
+            Direction(int xOffset, int yOffset) {
+                this.X_OFFSET = xOffset;
+                this.Y_OFFSET = yOffset;
+            }
+        }
+
+        LinkedList<String> movePool = new LinkedList<>();
 
         Vector<Pair> startRoom = this.rooms.get(index1);
         Vector<Pair> endRoom = this.rooms.get(index2);
-
         Pair cursor = new Pair(startRoom.get(rng.nextInt(0, startRoom.size())));
         Pair destination = new Pair(endRoom.get(rng.nextInt(0, endRoom.size())));
 
         while (!cursor.equals(destination)) {
-            Arrays.fill(dirWeight, SMALL_WEIGHT);
-            if (cursor.getX() < destination.getX()) dirWeight[1] = LARGE_WEIGHT; // 동쪽에 가중치 부여
-            else if (cursor.getX() > destination.getX()) dirWeight[0] = LARGE_WEIGHT; // 서쪽에 가중치 부여
-            if (cursor.getY() > destination.getY()) dirWeight[2] = LARGE_WEIGHT; // 북쪽에 가중치 부여
-            else if (cursor.getY() < destination.getY()) dirWeight[3] = LARGE_WEIGHT; // 남쪽에 가중치 부여
-            
-            int maxNum = 0;
-            int temp = 0;
-            for (int i : dirWeight) maxNum+=dirWeight[i];
-            randomNumber = rng.nextInt(0, maxNum + 1);
-            for (int i = 0; i < 4; i++) {
-                temp += dirWeight[i];
-                if (randomNumber >= temp) {
-                    if (!isValidCoord(cursor.getX() + directions[i].getX(), cursor.getY() + directions[i].getY())) {
-                        break; // 유효하지 방향이기 때문에 다시 추첨
-                    }
-                    else {
-                        cursor.setX(cursor.getX() + directions[i].getX());
-                        cursor.setY(cursor.getY() + directions[i].getY());
-                        mapData[cursor.getY()][cursor.getX()] = EMPTY; // cursor의 위치를 빈 타일로 지정
-                        break;
-                    }
-                    
-                }
+            movePool.clear();
+            // X축 가중치 계산
+            if (cursor.getX() > 0) { // cursor 위치가 서쪽 끝이 아닌 경우
+                for (int i = 0; i < SMALL_WEIGHT; i++) movePool.add("WEST");
             }
+            if (cursor.getX() < (this.MAPWIDTH - 1)) { // cursor 위치가 동쪽 끝이 아닌 경우
+                for (int i = 0; i < SMALL_WEIGHT; i++) movePool.add("EAST");
+            }
+            if (cursor.getX() < destination.getX()) { // cursor 위치가 목표의 왼쪽인 경우
+                for (int i = 0; i < LARGE_WEIGHT; i++) movePool.add("EAST");
+            }
+            else if (cursor.getX() > destination.getX()) { // cursor 위치가 목표의 오른쪽인 경우
+                for (int i = 0; i < LARGE_WEIGHT; i++) movePool.add("WEST");
+            }
+            // Y축 가중치 계산
+            if (cursor.getY() > 0) { // cursor 위치가 북쪽 끝이 아닌 경우
+                for (int i = 0; i < SMALL_WEIGHT; i++) movePool.add("NORTH");
+            }
+            if (cursor.getY() < (this.MAPHEIGHT - 1)) { // cursor 위치가 남쪽 끝이 아닌 경우
+                for (int i = 0; i < SMALL_WEIGHT; i++) movePool.add("SOUTH");
+            }
+            if (cursor.getY() < destination.getY()) { // cursor 위치가 목표의 위쪽인 경우
+                for (int i = 0; i < LARGE_WEIGHT; i++) movePool.add("SOUTH");
+            }
+            else if (cursor.getY() > destination.getY()) { // cursor 위치가 목표의 아래쪽인 경우
+                for (int i = 0; i < LARGE_WEIGHT; i++) movePool.add("NORTH");
+            }
+
+            int randIndex = rng.nextInt(movePool.size());
+            Direction move = Direction.valueOf(movePool.get(randIndex));
+            cursor.setX(cursor.getX() + move.X_OFFSET);
+            cursor.setY(cursor.getY() + move.Y_OFFSET);
+            mapData[cursor.getY()][cursor.getX()] = EMPTY; // cursor의 위치를 빈 타일로 지정
         }
     }
 
     public void test(int[][] map) {
-    // identifyAllRooms 메소드 테스트 용도
         this.mapData = map;
-        rooms = identifyAllRooms(); 
+        rooms = identifyAllRooms();
+        connectAllRooms();
 
         int x = 1;
         for (Vector<Pair> room : rooms) {
@@ -206,20 +221,20 @@ public class CellularAutomata {
             System.out.println();
             x++;
         }
-    }
+    }  
 
     public void testRender() {
         // 현재 this.mapData를 콘솔창에 출력
-        // 빈 타일은 " ", 벽 타일은 "█"로 표햔
+        // 빈 타일은 ".", 벽 타일은 "#"로 표햔
         System.out.println();
         for (int y = 0; y < MAPHEIGHT; y++) {
             for (int x = 0; x < MAPWIDTH; x++) {
                 switch (this.mapData[y][x]) {
                     case EMPTY:
-                        System.out.print(" ");
+                        System.out.print(".");
                         break;
                     case WALL:
-                        System.out.print("█");
+                        System.out.print("#");
                         break;
                 }
             }
