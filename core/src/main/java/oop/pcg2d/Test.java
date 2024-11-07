@@ -8,17 +8,10 @@ import oop.pcg2d.generator.CellularAutomata;
 
 public class Test {
     public static void main(String[] args) {
-        int[][] map = {
-            {0,1,1,1,1,1},
-            {1,1,1,1,1,1},
-            {1,1,1,1,1,1},
-            {1,1,1,1,1,1},
-            {1,1,1,1,1,0},
-        };
-        long seed = new Random().nextLong();
-        CellularAutomata gen = new CellularAutomata(6, 5, 0, false, seed);
-        gen.test(map);
-        gen.testRender();
 
+        long seed = new Random().nextLong();
+        CellularAutomata gen = new CellularAutomata(100, 100, 0.5, true, 10);
+        gen.generate();
+        gen.testRender();
     }
 }

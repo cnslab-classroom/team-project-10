@@ -43,6 +43,7 @@ public class CellularAutomata {
 
     public int[][] generate() {
         this.mapData = randomFill();
+
         for (int i = 0; i < SMOOTH_ITERATION_NUM; i++) {
             this.mapData = smoothing();
         }
@@ -54,24 +55,57 @@ public class CellularAutomata {
     }
 
     private boolean isValidCoord(int x, int y) {
-        return ( x >= 0 && x < this.MAPWIDTH && y >= 0 && y < this.MAPHEIGHT );
+        return (x >= 0 && x < this.MAPWIDTH && y >= 0 && y < this.MAPHEIGHT);
     }
 
     private int[][] randomFill() {
         // FILL_PROBABILITY를 이용해 맵에 무작위 벽을 배치한 맵을 생성하고 반환
+        int randomRow;
+        int randomCol;
         int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
-        // TODO: 메서드 구현하기
-        // ...
+        int fillTileNum = (int)(MAPHEIGHT*MAPWIDTH * FILL_PROBABILITY);
+        for (;fillTileNum > 0;fillTileNum--) {
+            randomRow = rng.nextInt(MAPHEIGHT);
+            randomCol = rng.nextInt(MAPWIDTH);
+            if (newMapData[randomRow][randomCol] == 0)
+                newMapData[randomRow][randomCol] = 1;
+        }
         return newMapData;
     }
 
     private int[][] smoothing() {
         // 맵의 모든 타일을 차례대로 순회해 cellular automata 규칙을 적용 시킨 새로운 맵을 생성하고 반환
         int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
-        // TODO: 메서드 구현하기
-        // ...
+    
+        for (int y = 0; y < MAPHEIGHT; y++) {
+            for (int x = 0; x < MAPWIDTH; x++) {
+                int wallCount = countAdjacentWalls(x, y); // 주변 벽의 개수를 셈
+                // 주변 벽이 5개 이상이면 벽(1)으로 설정, 그렇지 않으면 빈 타일(0)로 설정
+                newMapData[y][x] = (wallCount >= SURVIVAL_THRESHOLD) ? WALL : EMPTY;
+            }
+        }
+        
         return newMapData;
     }
+    private int countAdjacentWalls(int x, int y) {
+        int count = 0;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int nx = x + i;
+                int ny = y + j;
+                
+                if ((i != 0 || j != 0) && isValidCoord(nx, ny)) {
+                    if (mapData[ny][nx] == WALL) { // 주변 타일이 벽인 경우
+                        count++;
+                    }
+                }
+            }
+        }
+        
+        return count; // 주변 벽 타일 개수 반환
+    }
+    
+
 
     private Vector<Vector<Pair>> identifyAllRooms() {
         Vector<Vector<Pair>> rooms = new Vector<Vector<Pair>>();
@@ -82,6 +116,8 @@ public class CellularAutomata {
         // checking all tiles in mapData
         for (int x = 0; x < MAPWIDTH; x++) {
             for (int y = 0; y < MAPHEIGHT; y++) {
+
+
                 if (!visited[y][x] && mapData[y][x] == EMPTY) {
                     Vector<Pair> newRoom = identifySingleRoom(x, y);
                     rooms.add(newRoom);
@@ -91,6 +127,8 @@ public class CellularAutomata {
                         visited[p.getY()][p.getX()] = true;
                     }
                 }
+
+
             }
         }
 
@@ -115,6 +153,8 @@ public class CellularAutomata {
             for (int x = tile.getX() - 1; x <= tile.getX() + 1; x++) {
                 for (int y = tile.getY() - 1; y <= tile.getY() + 1; y++) {
                     if (isValidCoord(x, y) && (x == tile.getX() || y == tile.getY())) { // x,y 좌표가 올바른 좌표이고 tile의 동서남북 중 하나를 가리킬 때
+
+                        // System.out.println("정상적인 값 출력" + tile.getX() + ", " + tile.getY());
                         if (!visited[y][x] && mapData[y][x] == EMPTY) { // tile has not been visited and is an empty tile
                             visited[y][x] = true;
                             q.add(new Pair(x, y));
@@ -123,7 +163,6 @@ public class CellularAutomata {
                 }
             }
         }
-
         return room;
     }
 
@@ -221,11 +260,11 @@ public class CellularAutomata {
             System.out.println();
             x++;
         }
-    }  
+    }
 
     public void testRender() {
         // 현재 this.mapData를 콘솔창에 출력
-        // 빈 타일은 ".", 벽 타일은 "#"로 표햔
+        // 빈 타일은 ".", 벽 타일은 "#"로 표현
         System.out.println();
         for (int y = 0; y < MAPHEIGHT; y++) {
             for (int x = 0; x < MAPWIDTH; x++) {
