@@ -8,9 +8,7 @@ import oop.pcg2d.generator.CellularAutomata;
 
 public class Test {
     public static void main(String[] args) {
-
-        long seed = new Random().nextLong();
-        CellularAutomata gen = new CellularAutomata(100, 100, 0.5, true, 10);
+        CellularAutomata gen = new CellularAutomata(100, 100, 0.5, false, 10);
         gen.generate();
         gen.testRender();
     }

@@ -1,6 +1,5 @@
 package oop.pcg2d.generator;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -10,8 +9,7 @@ import oop.pcg2d.utility.Pair;
 
 public class CellularAutomata {
     // cellular automata 규칙:
-    private static final int BIRTH_THRESHOLD = 5;      // 어떤 타일이 빈 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 있으면 이 타일은 벽 타일로 바뀜
-    private static final int SURVIVAL_THRESHOLD = 4;   // 어떤 타일이 벽 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 없으면 이 타일은 빈 타일로 바뀜
+    private static final int BIRTH_THRESHOLD = 4;      // 어떤 타일이 빈 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 있으면 이 타일은 벽 타일로 바뀜
     private static final int SMOOTH_ITERATION_NUM = 5; // smoothing 메서드를 호출하는 횟수 (횟수가 많을수록 맵 지형이 매끄러워짐)
 
     // 타일 타입: 
@@ -80,8 +78,8 @@ public class CellularAutomata {
         for (int y = 0; y < MAPHEIGHT; y++) {
             for (int x = 0; x < MAPWIDTH; x++) {
                 int wallCount = countAdjacentWalls(x, y); // 주변 벽의 개수를 셈
-                // 주변 벽이 5개 이상이면 벽(1)으로 설정, 그렇지 않으면 빈 타일(0)로 설정
-                newMapData[y][x] = (wallCount >= SURVIVAL_THRESHOLD) ? WALL : EMPTY;
+                // 주변 벽이 4개 이상이면 벽(1)으로 설정, 그렇지 않으면 빈 타일(0)로 설정
+                newMapData[y][x] = (wallCount >= BIRTH_THRESHOLD) ? WALL : EMPTY;
             }
         }
         
@@ -93,11 +91,9 @@ public class CellularAutomata {
             for (int j = -1; j <= 1; j++) {
                 int nx = x + i;
                 int ny = y + j;
-                
                 if ((i != 0 || j != 0) && isValidCoord(nx, ny)) {
-                    if (mapData[ny][nx] == WALL) { // 주변 타일이 벽인 경우
+                    if (mapData[ny][nx] == WALL) // 주변 타일이 벽인 경우
                         count++;
-                    }
                 }
             }
         }
@@ -153,8 +149,6 @@ public class CellularAutomata {
             for (int x = tile.getX() - 1; x <= tile.getX() + 1; x++) {
                 for (int y = tile.getY() - 1; y <= tile.getY() + 1; y++) {
                     if (isValidCoord(x, y) && (x == tile.getX() || y == tile.getY())) { // x,y 좌표가 올바른 좌표이고 tile의 동서남북 중 하나를 가리킬 때
-
-                        // System.out.println("정상적인 값 출력" + tile.getX() + ", " + tile.getY());
                         if (!visited[y][x] && mapData[y][x] == EMPTY) { // tile has not been visited and is an empty tile
                             visited[y][x] = true;
                             q.add(new Pair(x, y));
