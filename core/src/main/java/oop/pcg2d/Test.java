@@ -2,13 +2,13 @@
 
 package oop.pcg2d;
 
-import java.util.Random;
-
 import oop.pcg2d.generator.CellularAutomata;
+import oop.pcg2d.generator.RoomsAndMazes;
 
 public class Test {
     public static void main(String[] args) {
-        CellularAutomata gen = new CellularAutomata(100, 100, 0.5, false, 10);
+        // CellularAutomata gen = new CellularAutomata(100, 100, 0.5, false, 10);
+        RoomsAndMazes gen = new RoomsAndMazes(0, 33, 33, 3, 9, 200, false);
         gen.generate();
         gen.testRender();
     }
