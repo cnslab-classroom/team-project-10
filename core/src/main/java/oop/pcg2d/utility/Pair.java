@@ -37,4 +37,41 @@ public class Pair {
     public boolean equals(int x, int y) {
         return (this.x == x && this.y == y);
     }
+
+    @Override
+    public String toString() {
+        return "(" + x + "," + y + ")";
+    }
+
+    public Pair getNorth() {
+        return new Pair(this.x, this.y - 1);
+    }
+
+    public Pair getSouth() {
+        return new Pair(this.x, this.y + 1);
+    }
+
+    public Pair getEast() {
+        return new Pair(this.x + 1, this.y);
+    }
+
+    public Pair getWest() {
+        return new Pair(this.x - 1, this.y);
+    }
+
+    public Pair getNE() {
+        return new Pair(this.x + 1, this.y - 1);
+    }
+
+    public Pair getNW() {
+        return new Pair(this.x - 1, this.y - 1);
+    }
+
+    public Pair getSE() {
+        return new Pair(this.x + 1, this.y + 1);
+    }
+
+    public Pair getSW() {
+        return new Pair(this.x - 1, this.y + 1);
+    }
 }
