@@ -27,11 +27,35 @@ public class RoomsAndMazes {
     public RoomsAndMazes(long seed, int mapWidth, int mapHeight, int roomMinLen, int roomMaxLen, int roomGenAttempt, boolean removeDeadend){
         this.rng = new Random(seed);
 
-        this.MAPWIDTH = mapWidth; // 반드시 홀수여야 함
-        this.MAPHEIGHT = mapHeight; // 반드시 홀수여야 함
-        this.ROOM_MIN_LEN = roomMinLen;
-        this.ROOM_MAX_LEN = roomMaxLen;
-        this.ROOM_GEN_ATTEMPT = roomGenAttempt;
+        if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
+            throw new IllegalArgumentException("mapWidth and mapHeight should both be odd numbers");
+        }
+        else {
+            this.MAPWIDTH = mapWidth;
+            this.MAPHEIGHT = mapHeight;
+        }
+
+        if (roomMinLen < 3) {
+            throw new IllegalArgumentException("roomMinLen should be more than or equal to 3");
+        }
+        else {
+            this.ROOM_MIN_LEN = roomMinLen;
+        }
+
+        if (roomMaxLen < roomMinLen) {
+            throw new IllegalArgumentException("roomMaxLen should be more than or equal to roomMinLen");
+        }
+        else {
+            this.ROOM_MAX_LEN = roomMaxLen;
+        }
+
+        if (roomGenAttempt < 1) {
+            throw new IllegalArgumentException("roomGenAttempt should be more than or equal to 1");
+        }
+        else {
+            this.ROOM_GEN_ATTEMPT = roomGenAttempt;
+        }
+
         this.REMOVE_DEADEND = removeDeadend;
 
         // 모든 타일을 벽 타일로 초기화
@@ -47,16 +71,12 @@ public class RoomsAndMazes {
         // 1. 방 생성 시도 횟수 만큼 방을 랜덤으로 생성
         addRooms();
 
-        testRender();
-
         // 2. 방을 제외한 곳을 미로로 채움
         for (int y = 1; y < this.MAPHEIGHT - 1; y += 2) {
             for (int x = 1; x < this.MAPWIDTH - 1; x += 2) {
-                if (this.mapData[y][x] == WALL && numOrthogonalWall(new Pair(x, y)) == 4) {
+                Pair currentPos = new Pair(x, y);
+                if (getTile(currentPos) == WALL && numOrthogonalWall(currentPos) == 4) {
                     growMaze(new Pair(x, y));
-                    // System.out.println("1 maze created");
-                    // testRender();
-                    // System.out.println();
                 }
             }
         }
@@ -131,15 +151,15 @@ public class RoomsAndMazes {
         return count;
     }
 
-    private int numDiagonalWall(Pair pos) {
-        // pos에 있는 타일의 남동,남서,북서,북동에 위치한 타일 중 벽 타일의 개수를 반환
-        int count = 0;
-        if (getTile(pos.getNE()) == WALL) count++; // 남동
-        if (getTile(pos.getNW()) == WALL) count++; // 남서
-        if (getTile(pos.getSE()) == WALL) count++; // 북동
-        if (getTile(pos.getSW()) == WALL) count++; // 북서
-        return count;
-    }
+    // private int numDiagonalWall(Pair pos) {
+    //     // pos에 있는 타일의 남동,남서,북서,북동에 위치한 타일 중 벽 타일의 개수를 반환
+    //     int count = 0;
+    //     if (getTile(pos.getNE()) == WALL) count++; // 남동
+    //     if (getTile(pos.getNW()) == WALL) count++; // 남서
+    //     if (getTile(pos.getSE()) == WALL) count++; // 북동
+    //     if (getTile(pos.getSW()) == WALL) count++; // 북서
+    //     return count;
+    // }
 
     private void growMaze(Pair startPosition) {
         Vector<Pair> todo = new Vector<>();
@@ -173,7 +193,7 @@ public class RoomsAndMazes {
                 int randIndex = rng.nextInt(candidateList.size());
                 Pair chosen = candidateList.get(randIndex);
                 carvePos(chosen);
-                // 미로를 올바르게 정렬하기 위해 한번 더 그 방향으로 길을 확장
+                // 미로가 각 방들과 올바르게 정렬되기 위해 한번 더 그 방향으로 길을 확장
                 chosen = new Pair(chosen.getX() + (chosen.getX() - current.getX()), chosen.getY() + (chosen.getY() - current.getY()));
                 carvePos(chosen);
                 todo.add(chosen);
