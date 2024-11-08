@@ -59,19 +59,19 @@ public class Pair {
         return new Pair(this.x - 1, this.y);
     }
 
-    public Pair getNE() {
-        return new Pair(this.x + 1, this.y - 1);
-    }
+    // public Pair getNE() {
+    //     return new Pair(this.x + 1, this.y - 1);
+    // }
 
-    public Pair getNW() {
-        return new Pair(this.x - 1, this.y - 1);
-    }
+    // public Pair getNW() {
+    //     return new Pair(this.x - 1, this.y - 1);
+    // }
 
-    public Pair getSE() {
-        return new Pair(this.x + 1, this.y + 1);
-    }
+    // public Pair getSE() {
+    //     return new Pair(this.x + 1, this.y + 1);
+    // }
 
-    public Pair getSW() {
-        return new Pair(this.x - 1, this.y + 1);
-    }
+    // public Pair getSW() {
+    //     return new Pair(this.x - 1, this.y + 1);
+    // }
 }
