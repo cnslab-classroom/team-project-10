@@ -17,6 +17,7 @@ public class App extends ApplicationAdapter {
     private Texture[] grass;
     private CellularAutomata ca = new CellularAutomata(100, 100, 0.45, false, 1);
     private Painter painter = new Painter();
+    private int[][] map = ca.generate();
     
     @Override
     public void create() {
@@ -37,7 +38,7 @@ public class App extends ApplicationAdapter {
     public void render() {
         ScreenUtils.clear(Color.BLACK);
         batch.begin();
-        painter.draw(ca.generate(), batch, grass);
+        painter.draw(map, batch, grass);
         batch.end();
     }
 
