@@ -1,8 +1,13 @@
 package oop.pcg2d.generator;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
+import java.util.List;
 
 import oop.pcg2d.utility.Pair;
 import oop.pcg2d.utility.Rectangle;
@@ -17,10 +22,11 @@ public class RoomsAndMazes {
     private final int ROOM_MIN_LEN; // 어떤 방의 변이 가질 수 있는 최소 길이
     private final int ROOM_MAX_LEN; // 어떤 방의 변이 가질 수 있는 최대 길이
     private final int ROOM_GEN_ATTEMPT; // 방 생성 시도 횟수
-    private final boolean REMOVE_DEADEND; 
-
+    private final boolean REMOVE_DEADEND;
     private int[][] mapData;
     private Vector<Rectangle> roomRects; // 각 방을 Rectangle 객체로 표현
+    private Vector<Vector<Pair>> rooms; // 각 방은 타일의 좌표를 나타내는 Pair의 Vector이다
+    // identifyAllRooms이 호출되기 전 까지는 초기화되지 않음
 
     private final Random rng; // 객체 내부에서의 모든 난수 생성은 이 rng를 사용할 것
 
@@ -82,7 +88,7 @@ public class RoomsAndMazes {
         }
 
         // 3. 모든 공간을 서로 연결
-
+        connectAllRooms();
         // 4. (선택적) 막다른 길 제거
 
         return this.mapData;
@@ -223,6 +229,170 @@ public class RoomsAndMazes {
             System.out.println();
         }
     }
+
+
+    
+       // 3. 모든 공간을 서로 연결
+    private void connectAllRooms() {
+        rooms = identifyAllRooms();
+        while (rooms.size() > 1) {
+            boolean connected = false;
+            for (int i = 1; i<rooms.size();i++) {
+                if (areRoomsAdjacent(rooms.get(0), rooms.get(i))) {
+                    connectRooms(rooms.get(0), rooms.get(i));
+                        rooms = identifyAllRooms();
+                        connected = true;
+                        break;
+                }
+            }
+            if (!connected) {
+                System.out.println("Failed to connect all rooms.");
+                break;
+            }
+        }
+    }
+
+
+
+    public void test_jinwook() {
+        System.out.println();
+        for (int y = 0; y < this.MAPHEIGHT; y++) {
+            for (int x = 0; x < this.MAPWIDTH; x++) {
+                switch (this.mapData[y][x]) {
+                    case EMPTY:
+                        System.out.print(".");
+                        break;
+                    case WALL:
+                        System.out.print("#");
+                        break;
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    public void testRoom_jinwook() {
+
+        int x = 1;
+        for (Vector<Pair> room : rooms) {
+            System.out.println("Room #" + String.valueOf(x));
+            for (Pair tile : room) {
+                System.out.print("(" + String.valueOf(tile.getX()) + "," + String.valueOf(tile.getY()) + "),  ");
+            }
+            System.out.println();
+            x++;
+        }
+    }
+
+    // 두 방이 서로 인접한지 확인
+    int index = 0;
+    public boolean areRoomsAdjacent(Vector<Pair> room1, Vector<Pair> room2) {
+        for (Pair coord1 : room1) {
+            int x1 = coord1.getX();
+            int y1 = coord1.getY();
+    
+            for (Pair coord2 : room2) {
+                int x2 = coord2.getX();
+                int y2 = coord2.getY();
+    
+                // Check if coord2 is one tile away from coord1
+                if ((Math.abs(x1 - x2) == 2 && y1 == y2) || (Math.abs(y1 - y2) == 2 && x1 == x2))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    // 인접한 방 연결
+    public void connectRooms(Vector<Pair> room1, Vector<Pair> room2) {
+        Vector<Pair> adjacentCoordinates = new Vector<>();
+        
+        for (Pair coord1 : room1) {
+            int x1 = coord1.getX();
+            int y1 = coord1.getY();
+    
+            for (Pair coord2 : room2) {
+                int x2 = coord2.getX();
+                int y2 = coord2.getY();
+    
+                // Check if coord2 is one tile away from coord1
+                if ((Math.abs(x1 - x2) == 2 && y1 == y2)) {
+                    adjacentCoordinates.add(new Pair((x1+x2)/2, y1));
+                }
+                else if ((Math.abs(y1 - y2) == 2 && x1 == x2)) {
+                    adjacentCoordinates.add(new Pair(x1, (y1+y2)/2));
+                }
+                    
+            }
+        }
+
+        if (!adjacentCoordinates.isEmpty()) {
+            Pair changeWall = adjacentCoordinates.get(rng.nextInt(adjacentCoordinates.size()));
+            mapData[changeWall.getY()][changeWall.getX()] = EMPTY;
+            System.out.println(changeWall.getX() + ", " + changeWall.getY() + " 정상화 성공");
+        }
+        else
+            System.out.println(" 정상화 실패");
+        
+    }
+
+
+    private Vector<Vector<Pair>> identifyAllRooms() {
+        Vector<Vector<Pair>> rooms = new Vector<Vector<Pair>>();
+        // visited는 맵의 해당 좌표를 탐색한 적이 있는지 기록하기 위한 배열 맵과 1대1 대응하는 같은 크기의 배열
+        boolean[][] visited = new boolean[MAPHEIGHT][MAPWIDTH]; // 모든 원소는 묵시적으로 false로 초기화
+
+        // checking all tiles in mapData
+        for (int x = 0; x < MAPWIDTH; x++) {
+            for (int y = 0; y < MAPHEIGHT; y++) {
+
+
+                if (!visited[y][x] && mapData[y][x] == EMPTY) {
+                    Vector<Pair> newRoom = identifySingleRoom(x, y);
+                    rooms.add(newRoom);
+                    
+                    // set all tiles in newRoom in mapFlag to LOOKED
+                    for (Pair p : newRoom) {
+                        visited[p.getY()][p.getX()] = true;
+                    }
+                }
+            }
+        }
+        return rooms;
+    }
+    private Vector<Pair> identifySingleRoom(int startX, int startY) {
+        // precondition: startX, startY는 맵에서 어떤 빈 타일의 x, y 좌표
+        Vector<Pair> room = new Vector<Pair>();
+        // visited는 맵의 해당 좌표를 탐색한 적이 있는지 기록하기 위한 배열 맵과 1대1 대응하는 같은 크기의 배열
+        boolean[][] visited = new boolean[MAPHEIGHT][MAPWIDTH]; // 모든 원소는 묵시적으로 false로 초기화
+        Queue<Pair> q = new LinkedList<Pair>();
+        
+        q.add(new Pair(startX, startY));
+        visited[startY][startX] = true;
+
+        while (!q.isEmpty()) {
+            Pair tile = q.poll();
+            room.add(tile);
+
+            for (int x = tile.getX() - 1; x <= tile.getX() + 1; x++) {
+                for (int y = tile.getY() - 1; y <= tile.getY() + 1; y++) {
+                    if (isValidCoord(x, y) && (x == tile.getX() || y == tile.getY())) { // x,y 좌표가 올바른 좌표이고 tile의 동서남북 중 하나를 가리킬 때
+                        if (!visited[y][x] && mapData[y][x] == EMPTY) { // tile has not been visited and is an empty tile
+                            visited[y][x] = true;
+                            q.add(new Pair(x, y));
+                        }
+                    }
+                }
+            }
+        }
+        return room;
+    }
+    private boolean isValidCoord(int x, int y) {
+        return (x >= 0 && x < this.MAPWIDTH && y >= 0 && y < this.MAPHEIGHT);
+    }
+
+        // 4. (선택적) 막다른 길 제거
+
 
 
 }
