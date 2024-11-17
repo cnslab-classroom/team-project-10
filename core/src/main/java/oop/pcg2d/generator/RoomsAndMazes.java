@@ -90,7 +90,7 @@ public class RoomsAndMazes {
         // 3. 모든 공간을 서로 연결
         connectAllRooms();
         // 4. (선택적) 막다른 길 제거
-
+        removeDeadend();
         return this.mapData;
     }
 
@@ -230,9 +230,6 @@ public class RoomsAndMazes {
         }
     }
 
-
-    
-       // 3. 모든 공간을 서로 연결
     private void connectAllRooms() {
         rooms = identifyAllRooms();
         while (rooms.size() > 1) {
@@ -251,8 +248,6 @@ public class RoomsAndMazes {
             }
         }
     }
-
-
 
     public void test_jinwook() {
         System.out.println();
@@ -283,18 +278,15 @@ public class RoomsAndMazes {
             x++;
         }
     }
-
     // 두 방이 서로 인접한지 확인
     int index = 0;
     public boolean areRoomsAdjacent(Vector<Pair> room1, Vector<Pair> room2) {
         for (Pair coord1 : room1) {
             int x1 = coord1.getX();
             int y1 = coord1.getY();
-    
             for (Pair coord2 : room2) {
                 int x2 = coord2.getX();
                 int y2 = coord2.getY();
-    
                 // Check if coord2 is one tile away from coord1
                 if ((Math.abs(x1 - x2) == 2 && y1 == y2) || (Math.abs(y1 - y2) == 2 && x1 == x2))
                     return true;
@@ -306,15 +298,12 @@ public class RoomsAndMazes {
     // 인접한 방 연결
     public void connectRooms(Vector<Pair> room1, Vector<Pair> room2) {
         Vector<Pair> adjacentCoordinates = new Vector<>();
-        
         for (Pair coord1 : room1) {
             int x1 = coord1.getX();
             int y1 = coord1.getY();
-    
             for (Pair coord2 : room2) {
                 int x2 = coord2.getX();
                 int y2 = coord2.getY();
-    
                 // Check if coord2 is one tile away from coord1
                 if ((Math.abs(x1 - x2) == 2 && y1 == y2)) {
                     adjacentCoordinates.add(new Pair((x1+x2)/2, y1));
@@ -322,35 +311,24 @@ public class RoomsAndMazes {
                 else if ((Math.abs(y1 - y2) == 2 && x1 == x2)) {
                     adjacentCoordinates.add(new Pair(x1, (y1+y2)/2));
                 }
-                    
             }
         }
-
         if (!adjacentCoordinates.isEmpty()) {
             Pair changeWall = adjacentCoordinates.get(rng.nextInt(adjacentCoordinates.size()));
             mapData[changeWall.getY()][changeWall.getX()] = EMPTY;
-            System.out.println(changeWall.getX() + ", " + changeWall.getY() + " 정상화 성공");
         }
-        else
-            System.out.println(" 정상화 실패");
-        
     }
-
 
     private Vector<Vector<Pair>> identifyAllRooms() {
         Vector<Vector<Pair>> rooms = new Vector<Vector<Pair>>();
         // visited는 맵의 해당 좌표를 탐색한 적이 있는지 기록하기 위한 배열 맵과 1대1 대응하는 같은 크기의 배열
         boolean[][] visited = new boolean[MAPHEIGHT][MAPWIDTH]; // 모든 원소는 묵시적으로 false로 초기화
-
         // checking all tiles in mapData
         for (int x = 0; x < MAPWIDTH; x++) {
             for (int y = 0; y < MAPHEIGHT; y++) {
-
-
                 if (!visited[y][x] && mapData[y][x] == EMPTY) {
                     Vector<Pair> newRoom = identifySingleRoom(x, y);
                     rooms.add(newRoom);
-                    
                     // set all tiles in newRoom in mapFlag to LOOKED
                     for (Pair p : newRoom) {
                         visited[p.getY()][p.getX()] = true;
@@ -366,14 +344,11 @@ public class RoomsAndMazes {
         // visited는 맵의 해당 좌표를 탐색한 적이 있는지 기록하기 위한 배열 맵과 1대1 대응하는 같은 크기의 배열
         boolean[][] visited = new boolean[MAPHEIGHT][MAPWIDTH]; // 모든 원소는 묵시적으로 false로 초기화
         Queue<Pair> q = new LinkedList<Pair>();
-        
         q.add(new Pair(startX, startY));
         visited[startY][startX] = true;
-
         while (!q.isEmpty()) {
             Pair tile = q.poll();
             room.add(tile);
-
             for (int x = tile.getX() - 1; x <= tile.getX() + 1; x++) {
                 for (int y = tile.getY() - 1; y <= tile.getY() + 1; y++) {
                     if (isValidCoord(x, y) && (x == tile.getX() || y == tile.getY())) { // x,y 좌표가 올바른 좌표이고 tile의 동서남북 중 하나를 가리킬 때
@@ -393,6 +368,52 @@ public class RoomsAndMazes {
 
         // 4. (선택적) 막다른 길 제거
 
+        private void removeDeadend() {
+            boolean hasDeadEnd;
+        
+            // 더 이상 제거할 막다른 길이 없을 때까지 반복
+            do {
+                hasDeadEnd = false; // 막다른 길이 있는지 추적
+        
+                // 맵 전체를 순회하며 막다른 길을 탐색 및 제거
+                for (int y = 1; y < this.MAPHEIGHT - 1; y++) {
+                    for (int x = 1; x < this.MAPWIDTH - 1; x++) {
+                        Pair currentPos = new Pair(x, y);
+        
+                        // 현재 타일이 빈 타일(EMPTY)이고 막다른 길이면 벽으로 채움
+                        if (getTile(currentPos) == EMPTY && isEndOfRoad(currentPos)) {
+                            this.mapData[y][x] = WALL; // 막다른 길을 벽으로 변경
+                            hasDeadEnd = true; // 제거 작업 발생
+        
+                            // 새로 벽으로 바꾼 타일의 주변 타일들을 재귀적으로 검사
+                            removeAdjacentDeadEnds(currentPos);
+                        }
+                    }
+                }
+            } while (hasDeadEnd); // 더 이상 제거할 막다른 길이 없을 때까지 반복
+        }
 
+
+    private void removeAdjacentDeadEnds(Pair pos) {
+        // 동서남북 타일 검사
+        for (Pair neighbor : Arrays.asList(
+                pos.getNorth(), pos.getSouth(),
+                pos.getEast(), pos.getWest())) {
+            if (isInBound(neighbor) && getTile(neighbor) == EMPTY && isEndOfRoad(neighbor)) {
+                this.mapData[neighbor.getY()][neighbor.getX()] = WALL; // 막다른 길을 벽으로 변경
+                removeAdjacentDeadEnds(neighbor); // 재귀적으로 탐지 및 제거
+            }
+        }
+    }
+
+    private boolean isEndOfRoad(Pair pos) {
+        int wallCount = 0;
+        if (getTile(pos.getNorth()) == WALL) wallCount++;
+        if (getTile(pos.getSouth()) == WALL) wallCount++;
+        if (getTile(pos.getEast()) == WALL) wallCount++;
+        if (getTile(pos.getWest()) == WALL) wallCount++;
+        // Return true if exactly 3 of the surrounding tiles are walls
+        return wallCount == 3;
+    }
 
 }
