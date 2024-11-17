@@ -1,13 +1,9 @@
 package oop.pcg2d.generator;
-
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
-import java.util.List;
 
 import oop.pcg2d.utility.Pair;
 import oop.pcg2d.utility.Rectangle;
@@ -76,7 +72,6 @@ public class RoomsAndMazes {
     public int[][] generate() {
         // 1. 방 생성 시도 횟수 만큼 방을 랜덤으로 생성
         addRooms();
-
         // 2. 방을 제외한 곳을 미로로 채움
         for (int y = 1; y < this.MAPHEIGHT - 1; y += 2) {
             for (int x = 1; x < this.MAPWIDTH - 1; x += 2) {
@@ -86,17 +81,15 @@ public class RoomsAndMazes {
                 }
             }
         }
-
         // 3. 모든 공간을 서로 연결
         connectAllRooms();
         // 4. (선택적) 막다른 길 제거
-        removeDeadend();
+        if (REMOVE_DEADEND == true)
+            removeDeadend();
         return this.mapData;
     }
 
     private void addRooms() {
-        // 
-
         for (int i = 0; i < this.ROOM_GEN_ATTEMPT; i++) {
             // 맵을 벗어나지 않은 방 후보 생성
             // 이때 미로와 올바르게 정렬되려면 다음 조건을 충족해야 함:
@@ -249,35 +242,6 @@ public class RoomsAndMazes {
         }
     }
 
-    public void test_jinwook() {
-        System.out.println();
-        for (int y = 0; y < this.MAPHEIGHT; y++) {
-            for (int x = 0; x < this.MAPWIDTH; x++) {
-                switch (this.mapData[y][x]) {
-                    case EMPTY:
-                        System.out.print(".");
-                        break;
-                    case WALL:
-                        System.out.print("#");
-                        break;
-                }
-            }
-            System.out.println();
-        }
-    }
-
-    public void testRoom_jinwook() {
-
-        int x = 1;
-        for (Vector<Pair> room : rooms) {
-            System.out.println("Room #" + String.valueOf(x));
-            for (Pair tile : room) {
-                System.out.print("(" + String.valueOf(tile.getX()) + "," + String.valueOf(tile.getY()) + "),  ");
-            }
-            System.out.println();
-            x++;
-        }
-    }
     // 두 방이 서로 인접한지 확인
     int index = 0;
     public boolean areRoomsAdjacent(Vector<Pair> room1, Vector<Pair> room2) {
@@ -366,34 +330,31 @@ public class RoomsAndMazes {
         return (x >= 0 && x < this.MAPWIDTH && y >= 0 && y < this.MAPHEIGHT);
     }
 
-        // 4. (선택적) 막다른 길 제거
-
-        private void removeDeadend() {
-            boolean hasDeadEnd;
-        
-            // 더 이상 제거할 막다른 길이 없을 때까지 반복
-            do {
-                hasDeadEnd = false; // 막다른 길이 있는지 추적
-        
-                // 맵 전체를 순회하며 막다른 길을 탐색 및 제거
-                for (int y = 1; y < this.MAPHEIGHT - 1; y++) {
-                    for (int x = 1; x < this.MAPWIDTH - 1; x++) {
-                        Pair currentPos = new Pair(x, y);
-        
-                        // 현재 타일이 빈 타일(EMPTY)이고 막다른 길이면 벽으로 채움
-                        if (getTile(currentPos) == EMPTY && isEndOfRoad(currentPos)) {
-                            this.mapData[y][x] = WALL; // 막다른 길을 벽으로 변경
-                            hasDeadEnd = true; // 제거 작업 발생
-        
-                            // 새로 벽으로 바꾼 타일의 주변 타일들을 재귀적으로 검사
-                            removeAdjacentDeadEnds(currentPos);
-                        }
+    // 4. (선택적) 막다른 길 제거
+    private void removeDeadend() {
+        boolean hasDeadEnd;
+        // 더 이상 제거할 막다른 길이 없을 때까지 반복
+        do {
+            hasDeadEnd = false; // 막다른 길이 있는지 추적
+            // 맵 전체를 순회하며 막다른 길을 탐색 및 제거
+            for (int y = 1; y < this.MAPHEIGHT - 1; y++) {
+                for (int x = 1; x < this.MAPWIDTH - 1; x++) {
+                    Pair currentPos = new Pair(x, y);
+    
+                    // 현재 타일이 빈 타일(EMPTY)이고 막다른 길이면 벽으로 채움
+                    if (getTile(currentPos) == EMPTY && isEndOfRoad(currentPos)) {
+                        this.mapData[y][x] = WALL; // 막다른 길을 벽으로 변경
+                        hasDeadEnd = true; // 제거 작업 발생
+    
+                        // 새로 벽으로 바꾼 타일의 주변 타일들을 재귀적으로 검사
+                        removeAdjacentDeadEnds(currentPos);
                     }
                 }
-            } while (hasDeadEnd); // 더 이상 제거할 막다른 길이 없을 때까지 반복
-        }
+            }
+        } while (hasDeadEnd); // 더 이상 제거할 막다른 길이 없을 때까지 반복
+    }
 
-
+    // 막다른 길 제거
     private void removeAdjacentDeadEnds(Pair pos) {
         // 동서남북 타일 검사
         for (Pair neighbor : Arrays.asList(
@@ -406,6 +367,7 @@ public class RoomsAndMazes {
         }
     }
 
+    // 막다른 길인지 확인
     private boolean isEndOfRoad(Pair pos) {
         int wallCount = 0;
         if (getTile(pos.getNorth()) == WALL) wallCount++;
