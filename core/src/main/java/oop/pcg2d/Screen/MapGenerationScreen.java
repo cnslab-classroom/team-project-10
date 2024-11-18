@@ -34,7 +34,7 @@ public class MapGenerationScreen extends AbstractScreen {
     private int[][] mapData; // 생성된 맵 데이터
 
     private SpriteBatch batch;
-    private Texture[] tileTextures;
+    private Texture[][] tileTextures;
     private Painter painter;
 
     // 뒤로가기 버튼 변수
@@ -73,16 +73,30 @@ public class MapGenerationScreen extends AbstractScreen {
         batch = new SpriteBatch();
 
         // 타일 텍스처 로드 (팀원들과 동일한 경로와 이름으로 설정)
-        tileTextures = new Texture[9];
-        tileTextures[0] = new Texture(Gdx.files.internal("grass_left_top.png"));
-        tileTextures[1] = new Texture(Gdx.files.internal("grass_mid_top.png"));
-        tileTextures[2] = new Texture(Gdx.files.internal("grass_right_top.png"));
-        tileTextures[3] = new Texture(Gdx.files.internal("grass_left_mid.png"));
-        tileTextures[4] = new Texture(Gdx.files.internal("grass_mid_mid.png"));
-        tileTextures[5] = new Texture(Gdx.files.internal("grass_right_mid.png"));
-        tileTextures[6] = new Texture(Gdx.files.internal("grass_left_bot.png"));
-        tileTextures[7] = new Texture(Gdx.files.internal("grass_mid_bot.png"));
-        tileTextures[8] = new Texture(Gdx.files.internal("grass_right_bot.png"));
+        tileTextures = new Texture[2][];
+        tileTextures[0] = new Texture[9];
+        tileTextures[1] = new Texture[11];
+        tileTextures[0][0] = new Texture(Gdx.files.internal("grass_left_top.png"));
+        tileTextures[0][1] = new Texture(Gdx.files.internal("grass_mid_top.png"));
+        tileTextures[0][2] = new Texture(Gdx.files.internal("grass_right_top.png"));
+        tileTextures[0][3] = new Texture(Gdx.files.internal("grass_left_mid.png"));
+        tileTextures[0][4] = new Texture(Gdx.files.internal("grass_mid_mid.png"));
+        tileTextures[0][5] = new Texture(Gdx.files.internal("grass_right_mid.png"));
+        tileTextures[0][6] = new Texture(Gdx.files.internal("grass_left_bot.png"));
+        tileTextures[0][7] = new Texture(Gdx.files.internal("grass_mid_bot.png"));
+        tileTextures[0][8] = new Texture(Gdx.files.internal("grass_right_bot.png"));
+        
+        tileTextures[1][0] = new Texture(Gdx.files.internal("stone_left_top.png"));
+        tileTextures[1][1] = new Texture(Gdx.files.internal("stone_mid_top.png"));
+        tileTextures[1][2] = new Texture(Gdx.files.internal("stone_right_top.png"));
+        tileTextures[1][3] = new Texture(Gdx.files.internal("stone_right_mid.png"));
+        tileTextures[1][4] = new Texture(Gdx.files.internal("stone_mid_mid.png"));
+        tileTextures[1][5] = new Texture(Gdx.files.internal("stone_right_mid.png"));
+        tileTextures[1][6] = new Texture(Gdx.files.internal("stone_left_bot.png"));
+        tileTextures[1][7] = new Texture(Gdx.files.internal("stone_mid_top.png"));
+        tileTextures[1][8] = new Texture(Gdx.files.internal("stone_mid_bot.png"));
+        tileTextures[1][9] = new Texture(Gdx.files.internal("stone_void.png"));
+        tileTextures[1][10] = new Texture(Gdx.files.internal("stone_front_left.png"));
 
         painter = new Painter();
 
@@ -136,7 +150,7 @@ public class MapGenerationScreen extends AbstractScreen {
 
         // 맵 렌더링 코드 유지
         batch.begin();
-        painter.draw(mapData, batch, tileTextures);
+        painter.draw(mapData, batch, tileTextures, algorithm);
         batch.end();
 
         // 스테이지를 업데이트하고 그리기
@@ -149,8 +163,10 @@ public class MapGenerationScreen extends AbstractScreen {
         super.dispose();
         // 리소스 해제
         batch.dispose();
-        for (Texture texture : tileTextures) {
-            texture.dispose();
+        for(Texture[] texture : tileTextures) {
+            for(Texture t : texture) {
+                t.dispose();
+            }
         }
     }
 }
