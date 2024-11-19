@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Texture;
 
 public class Painter {
-
+//1
     public void draw(int[][] x, SpriteBatch batch, Texture[][] image, String algorithm) {   // 입력받은 2차원 배열에 따라 맵 출력, image는 타일 이미지
         int s = 16;    // 타일 길이
         int asset_n = 0;
