@@ -72,7 +72,7 @@ public class MapGenerationScreen extends AbstractScreen {
     private void init() {
         batch = new SpriteBatch();
 
-        // 타일 텍스처 로드 (팀원들과 동일한 경로와 이름으로 설정)
+        // 타일 텍스처 로드
         tileTextures = new Texture[2][];
         tileTextures[0] = new Texture[9];
         tileTextures[1] = new Texture[11];
@@ -118,8 +118,6 @@ public class MapGenerationScreen extends AbstractScreen {
     @Override
     public void show() {
         super.show();
-
-        // 기존 코드 유지...
 
         // 뒤로 가기 버튼 생성
         backButton = new TextButton("Back", skin);
