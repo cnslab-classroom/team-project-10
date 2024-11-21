@@ -26,7 +26,7 @@ public class SelectMap extends AbstractScreen {
     private Label heightLabel; // 클래스 멤버 변수로 변경
 
     // Cellular Automata 파라미터
-    private TextField fillProbTextField;
+    private Slider fillProbSlider;
     private CheckBox isConnectedCheckBox;
 
     // Rooms and Mazes 파라미터
@@ -144,7 +144,7 @@ public class SelectMap extends AbstractScreen {
 
                     // 알고리즘별 파라미터 가져오기
                     if (selectedAlgorithm.equals("Cellular Automata")) {
-                        double fillProb = Double.parseDouble(fillProbTextField.getText());
+                        double fillProb = fillProbSlider.getValue();
                         boolean isConnected = isConnectedCheckBox.isChecked();
 
                         // 맵 생성 화면으로 이동
@@ -196,15 +196,29 @@ public class SelectMap extends AbstractScreen {
 
         if (algorithm.equals("Cellular Automata")) {
             // Cellular Automata 파라미터 생성
-            Label fillProbLabel = new Label("Fill Probability (0~1):", skin);
-            fillProbTextField = new TextField("0.45", skin);
+            // 채우기 확률 입력 슬라이더
+            Label fillProbLabel = new Label("Fill Probability (0.4 ~ 0.6):", skin);
+            fillProbSlider = new Slider(0.4f, 0.6f, 0.01f, false, skin);
+            fillProbSlider.setValue(0.45f); // 초기 값 설정
+
+            Label fillProbValueLabel = new Label(String.format("%.2f", fillProbSlider.getValue()), skin);
+
+            // 슬라이더 리스너 추가
+            fillProbSlider.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    fillProbValueLabel.setText(String.format("%.2f", fillProbSlider.getValue()));
+                }
+            });
+            // end of fillProbSlider
 
             isConnectedCheckBox = new CheckBox("Connect Rooms", skin);
             isConnectedCheckBox.setChecked(true);
 
             // 테이블에 추가
             algorithmParamsTable.add(fillProbLabel).pad(5);
-            algorithmParamsTable.add(fillProbTextField).width(200).pad(5);
+            algorithmParamsTable.add(fillProbSlider).width(200).pad(5);
+            algorithmParamsTable.add(fillProbValueLabel).pad(5);
             algorithmParamsTable.row();
 
             algorithmParamsTable.add(isConnectedCheckBox).colspan(2).pad(5);

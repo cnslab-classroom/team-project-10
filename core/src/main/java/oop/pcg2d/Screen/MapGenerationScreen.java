@@ -204,7 +204,6 @@ public class MapGenerationScreen extends AbstractScreen {
             public void clicked(InputEvent event, float x, float y) {
                 // 기존의 SelectMap 화면으로 다시 돌아가기
                 game.setScreen(selectMapScreen);
-                dispose(); // 현재 화면 자원 해제
             }
         });
         regenButton.addListener(new ClickListener() {
