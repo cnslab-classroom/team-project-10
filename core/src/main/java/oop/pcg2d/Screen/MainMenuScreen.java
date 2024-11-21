@@ -10,6 +10,7 @@ import oop.pcg2d.App;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.Gdx;
 
@@ -42,6 +43,15 @@ public class MainMenuScreen extends AbstractScreen {
 
         stage.addActor(table); // 스테이지에 테이블 추가
         // 배경 이미지보다 나중에 추가되므로, 배경 이미지 위에 테이블의 요소들이 그려짐
+
+        // 프로그램 제목 레이블 생성
+        Label titleLabel = new Label("MapGenerator with Java", skin);
+        titleLabel.setFontScale(2); // 글자 크기
+        titleLabel.setColor(Color.GOLD); // 글자 색상
+
+        // 제목을 테이블에 추가
+        table.add(titleLabel).colspan(2).pad(10);
+        table.row();
 
         // 버튼 생성
         TextButton button1 = new TextButton("Start", skin);

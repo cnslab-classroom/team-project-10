@@ -65,9 +65,12 @@ public class MapGenerationScreen extends AbstractScreen {
     // Back 버튼을 눌렀을 때, 이전 SelectMap 인스턴스를 저장하는 변수
     private SelectMap selectMapScreen;
 
+    // 타일 테마 변수
+    private String tileTheme;
+
     // 생성자 (셀룰러 오토마타 알고리즘용)
     public MapGenerationScreen(App game, SelectMap selectMapScreen, int mapWidth, int mapHeight, long seed,
-            double fillProb, boolean isConnected) {
+            double fillProb, boolean isConnected, String tileTheme) {
         super(game);
         this.selectMapScreen = selectMapScreen;
         this.mapWidth = mapWidth;
@@ -76,13 +79,14 @@ public class MapGenerationScreen extends AbstractScreen {
         this.algorithm = "Cellular Automata";
         this.fillProb = fillProb;
         this.isConnected = isConnected;
+        this.tileTheme = tileTheme;
         init();
     }
 
     // 생성자 (Rooms and Mazes 알고리즘용)
     public MapGenerationScreen(App game, SelectMap selectMapScreen, int mapWidth, int mapHeight, long seed,
             int roomMinLen, int roomMaxLen,
-            int roomGenAttempt, boolean removeDeadend) {
+            int roomGenAttempt, boolean removeDeadend, String tileTheme) {
         super(game);
         this.selectMapScreen = selectMapScreen;
         this.mapWidth = mapWidth;
@@ -93,6 +97,7 @@ public class MapGenerationScreen extends AbstractScreen {
         this.roomMaxLen = roomMaxLen;
         this.roomGenAttempt = roomGenAttempt;
         this.removeDeadend = removeDeadend;
+        this.tileTheme = tileTheme;
         init();
     }
 
@@ -160,8 +165,7 @@ public class MapGenerationScreen extends AbstractScreen {
         tileTextures[2][15] = new Texture(Gdx.files.internal("lava_left_right.png"));
         tileTextures[2][16] = new Texture(Gdx.files.internal("lava_top_bot.png"));
 
-
-        painter = new Painter();
+        painter = new Painter(tileTheme);
 
         // 맵 생성
         generateMap();
@@ -217,7 +221,7 @@ public class MapGenerationScreen extends AbstractScreen {
 
         // 현재 시드 라벨을 생성
         seedLabel = new Label("Current Seed: " + this.seed, skin);
-        
+
         // 버튼을 스테이지에 추가
         Table table = new Table();
         table.setDebug(true);
@@ -228,8 +232,6 @@ public class MapGenerationScreen extends AbstractScreen {
         table.add(seedLabel).space(10);
 
         stage.addActor(table);
-
-        
 
         // 입력 프로세서 설정
         InputMultiplexer multiplexer = new InputMultiplexer();

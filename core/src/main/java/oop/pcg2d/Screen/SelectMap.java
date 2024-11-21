@@ -25,6 +25,10 @@ public class SelectMap extends AbstractScreen {
     private Label widthLabel; // 클래스 멤버 변수로 변경
     private Label heightLabel; // 클래스 멤버 변수로 변경
 
+    // 타일 테마 선택 라벨
+    private String[] tileThemes = { "Grass", "Stone", "Lava" };
+    private ButtonGroup<CheckBox> tileThemeGroup;
+
     // Cellular Automata 파라미터
     private Slider fillProbSlider;
     private CheckBox isConnectedCheckBox;
@@ -82,6 +86,31 @@ public class SelectMap extends AbstractScreen {
         TextButton confirmButton = new TextButton("Create", skin);
         TextButton backButton = new TextButton("Back", skin);
 
+        // 타일 테마 선택 라벨 및 체크박스
+        Label tileThemeLabel = new Label("Select a Tile Theme:", skin);
+
+        tileThemeGroup = new ButtonGroup<>();
+        tileThemeGroup.setMaxCheckCount(1);
+        tileThemeGroup.setMinCheckCount(1);
+        tileThemeGroup.setUncheckLast(true);
+
+        // for문을 돌며 테이블에 체크박스 추가
+        Table tileThemeTable = new Table();
+        for (String theme : tileThemes) {
+            CheckBox checkBox = new CheckBox(theme, skin);
+            tileThemeGroup.add(checkBox);
+            tileThemeTable.add(checkBox).pad(5);
+        }
+
+        // 기본 값 설정
+        tileThemeGroup.setChecked("Grass");
+
+        // 타일 테마 선택 UI를 테이블에 배치
+        table.add(tileThemeLabel).colspan(2).pad(5);
+        table.row();
+        table.add(tileThemeTable).colspan(2).pad(5);
+        table.row();
+
         // 테이블에 요소 배치
         table.add(algorithmLabel).pad(5);
         table.add(algorithmSelectBox).width(200).pad(5);
@@ -133,6 +162,9 @@ public class SelectMap extends AbstractScreen {
                             : Long.parseLong(seedTextField.getText());
                     String selectedAlgorithm = algorithmSelectBox.getSelected();
 
+                    // 타일 테마 선택
+                    String selectedTileTheme = tileThemeGroup.getChecked().getText().toString();
+
                     // Rooms and Mazes 알고리즘의 경우 맵 크기가 홀수여야 함
                     if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
@@ -149,7 +181,7 @@ public class SelectMap extends AbstractScreen {
 
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
-                                fillProb, isConnected));
+                                fillProb, isConnected, selectedTileTheme));
                     } else if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
                         int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
@@ -166,7 +198,7 @@ public class SelectMap extends AbstractScreen {
                         // 맵 생성 화면으로 이동
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
-                                roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend));
+                                roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend, selectedTileTheme));
                     }
                 } catch (NumberFormatException e) {
                     // 숫자 형식이 잘못된 경우 오류 메시지 표시
