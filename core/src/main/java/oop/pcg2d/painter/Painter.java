@@ -14,16 +14,10 @@ public class Painter {
 //1
     public void draw(int[][] x, SpriteBatch batch, Texture[][] image, String algorithm) {   // 입력받은 2차원 배열에 따라 맵 출력, image는 타일 이미지
         int s = tileSize;    // 타일 길이 (변수로 변경했어요)
-        int asset_n = 0;
+        int asset_n = 2;    // 타일 이미지 번호
 
-        if(algorithm.equals("Cellular Automata")) {
-            asset_n = 0;
-        }
-        else if(algorithm.equals("Rooms and Mazes")) {
-            asset_n = 1;
-        }
 
-        if (algorithm.equals("Cellular Automata")) {
+        if (algorithm.equals("Cellular Automata") || algorithm.equals("Rooms and Mazes")) {
             for (int i = x.length - 1; i >= 0; i--) {
                 for (int j = 0; j < x[0].length; j++) {
                     if (x[i][j] == 1) {
@@ -39,7 +33,7 @@ public class Painter {
                                     if (is_right(x, i, j)) { // 상, 하, 우 블록 존재할때
                                         batch.draw(image[asset_n][3], j * s, (x.length - i - 1) * s, s, s);
                                     } else { // 상, 하
-                                        batch.draw(image[asset_n][5], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][15], j * s, (x.length - i - 1) * s, s, s);
                                     }
                                 }
                             } else {
@@ -53,7 +47,7 @@ public class Painter {
                                     if (is_right(x, i, j)) { // 상, 우
                                         batch.draw(image[asset_n][6], j * s, (x.length - i - 1) * s, s, s);
                                     } else { // 상
-                                        batch.draw(image[asset_n][7], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][13], j * s, (x.length - i - 1) * s, s, s);
                                     }
                                 }
                             }
@@ -69,31 +63,34 @@ public class Painter {
                                     if (is_right(x, i, j)) { // 하, 우
                                         batch.draw(image[asset_n][0], j * s, (x.length - i - 1) * s, s, s);
                                     } else { // 하
-                                        batch.draw(image[asset_n][1], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][12], j * s, (x.length - i - 1) * s, s, s);
                                     }
                                 }
                             } else {
                                 if (is_left(x, i, j)) {
                                     if (is_right(x, i, j)) { // 좌, 우
-                                        batch.draw(image[asset_n][1], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][16], j * s, (x.length - i - 1) * s, s, s);
                                     } else { // 좌
-                                        batch.draw(image[asset_n][2], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][11], j * s, (x.length - i - 1) * s, s, s);
                                     }
                                 } else {
                                     if (is_right(x, i, j)) { // 우
-                                        batch.draw(image[asset_n][0], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][10], j * s, (x.length - i - 1) * s, s, s);
                                     } else { // 주변에 블록이 없을 때
-                                        batch.draw(image[asset_n][1], j * s, (x.length - i - 1) * s, s, s);
+                                        batch.draw(image[asset_n][14], j * s, (x.length - i - 1) * s, s, s);
                                     }
                                 }
                             }
                         }
                     }
+                    else {
+                        batch.draw(image[asset_n][9], j * s, (x.length - i - 1) * s, s, s);
+                    }
                 }
             }
         }
 
-        if (algorithm.equals("Rooms and Mazes")) {
+        /*if (algorithm.equals("Rooms and Mazes")) {
             for (int i = x.length - 1; i >= 0; i--) {
                 for (int j = 0; j < x[0].length; j++) {
                     if (x[i][j] == 1) {
@@ -172,7 +169,7 @@ public class Painter {
                     }
                 }
             }
-        }
+        } */
     }
 
     private boolean is_left(int[][] x, int i, int j) {      // 왼쪽에 블록이 있는지 확인

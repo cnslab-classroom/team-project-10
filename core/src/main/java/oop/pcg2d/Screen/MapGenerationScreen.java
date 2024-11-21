@@ -108,9 +108,10 @@ public class MapGenerationScreen extends AbstractScreen {
         camera.setToOrtho(false, w, h);
 
         // 타일 텍스처 로드
-        tileTextures = new Texture[2][];
-        tileTextures[0] = new Texture[9];
+        tileTextures = new Texture[6][];
+        tileTextures[0] = new Texture[17];
         tileTextures[1] = new Texture[11];
+        tileTextures[2] = new Texture[17];
         tileTextures[0][0] = new Texture(Gdx.files.internal("grass_left_top.png"));
         tileTextures[0][1] = new Texture(Gdx.files.internal("grass_mid_top.png"));
         tileTextures[0][2] = new Texture(Gdx.files.internal("grass_right_top.png"));
@@ -120,6 +121,14 @@ public class MapGenerationScreen extends AbstractScreen {
         tileTextures[0][6] = new Texture(Gdx.files.internal("grass_left_bot.png"));
         tileTextures[0][7] = new Texture(Gdx.files.internal("grass_mid_bot.png"));
         tileTextures[0][8] = new Texture(Gdx.files.internal("grass_right_bot.png"));
+        tileTextures[0][9] = new Texture(Gdx.files.internal("grass_void.png"));
+        tileTextures[0][10] = new Texture(Gdx.files.internal("grass_left.png"));
+        tileTextures[0][11] = new Texture(Gdx.files.internal("grass_right.png"));
+        tileTextures[0][12] = new Texture(Gdx.files.internal("grass_top.png"));
+        tileTextures[0][13] = new Texture(Gdx.files.internal("grass_bot.png"));
+        tileTextures[0][14] = new Texture(Gdx.files.internal("grass_center.png"));
+        tileTextures[0][15] = new Texture(Gdx.files.internal("grass_left_right.png"));
+        tileTextures[0][16] = new Texture(Gdx.files.internal("grass_top_bot.png"));
 
         tileTextures[1][0] = new Texture(Gdx.files.internal("stone_left_top.png"));
         tileTextures[1][1] = new Texture(Gdx.files.internal("stone_mid_top.png"));
@@ -132,6 +141,25 @@ public class MapGenerationScreen extends AbstractScreen {
         tileTextures[1][8] = new Texture(Gdx.files.internal("stone_mid_bot.png"));
         tileTextures[1][9] = new Texture(Gdx.files.internal("stone_void.png"));
         tileTextures[1][10] = new Texture(Gdx.files.internal("stone_front_left.png"));
+
+        tileTextures[2][0] = new Texture(Gdx.files.internal("lava_left_top.png"));
+        tileTextures[2][1] = new Texture(Gdx.files.internal("lava_mid_top.png"));
+        tileTextures[2][2] = new Texture(Gdx.files.internal("lava_right_top.png"));
+        tileTextures[2][3] = new Texture(Gdx.files.internal("lava_left_mid.png"));
+        tileTextures[2][4] = new Texture(Gdx.files.internal("lava_mid_mid.png"));
+        tileTextures[2][5] = new Texture(Gdx.files.internal("lava_right_mid.png"));
+        tileTextures[2][6] = new Texture(Gdx.files.internal("lava_left_bot.png"));
+        tileTextures[2][7] = new Texture(Gdx.files.internal("lava_mid_bot.png"));
+        tileTextures[2][8] = new Texture(Gdx.files.internal("lava_right_bot.png"));
+        tileTextures[2][9] = new Texture(Gdx.files.internal("lava_void.png"));
+        tileTextures[2][10] = new Texture(Gdx.files.internal("lava_left.png"));
+        tileTextures[2][11] = new Texture(Gdx.files.internal("lava_right.png"));
+        tileTextures[2][12] = new Texture(Gdx.files.internal("lava_top.png"));
+        tileTextures[2][13] = new Texture(Gdx.files.internal("lava_bot.png"));
+        tileTextures[2][14] = new Texture(Gdx.files.internal("lava_center.png"));
+        tileTextures[2][15] = new Texture(Gdx.files.internal("lava_left_right.png"));
+        tileTextures[2][16] = new Texture(Gdx.files.internal("lava_top_bot.png"));
+
 
         painter = new Painter();
 
