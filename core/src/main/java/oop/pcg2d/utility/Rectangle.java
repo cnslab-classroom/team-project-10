@@ -1,7 +1,6 @@
 package oop.pcg2d.utility;
 
 import java.util.Vector;
-import oop.pcg2d.utility.Pair;
 
 public class Rectangle {
     private int topLeftX;
