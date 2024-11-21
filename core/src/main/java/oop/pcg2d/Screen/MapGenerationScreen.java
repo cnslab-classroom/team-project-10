@@ -1,10 +1,13 @@
 package oop.pcg2d.Screen;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -45,6 +48,11 @@ public class MapGenerationScreen extends AbstractScreen {
 
     // 뒤로가기 버튼 변수
     private TextButton backButton;
+    // 재생성 버튼 변수
+    private TextButton regenButton;
+
+    // 현재 시드 라벨 변수
+    private Label seedLabel;
 
     // 카메라 변수
     private OrthographicCamera camera;
@@ -150,12 +158,17 @@ public class MapGenerationScreen extends AbstractScreen {
         }
     }
 
+    private void newRandomSeed() {
+        this.seed = new Random().nextLong();
+    }
+
     @Override
     public void show() {
         super.show();
-
         // 뒤로 가기 버튼 생성
         backButton = new TextButton("Back", skin);
+        // 재생성 버튼 생성
+        regenButton = new TextButton("Regenerate", skin);
 
         // 버튼에 클릭 리스너 추가
         backButton.addListener(new ClickListener() {
@@ -166,14 +179,30 @@ public class MapGenerationScreen extends AbstractScreen {
                 dispose(); // 현재 화면 자원 해제
             }
         });
+        regenButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // 기존 맵 생성 인자에 seed만 랜덤으로 바꿔 맵 재생성
+                newRandomSeed();
+                generateMap();
+            }
+        });
 
+        // 현재 시드 라벨을 생성
+        seedLabel = new Label("Current Seed: " + this.seed, skin);
+        
         // 버튼을 스테이지에 추가
         Table table = new Table();
+        table.setDebug(true);
         table.setFillParent(true);
-        table.top().right().pad(10); // 버튼 위치 우측으로 변경
-        table.add(backButton).width(100).height(50);
+        table.top().left().pad(10); // 버튼 위치 우측으로 변경
+        table.add(backButton).width(100).height(50).space(10);
+        table.add(regenButton).width(100).height(50).space(10);
+        table.add(seedLabel).space(10);
 
         stage.addActor(table);
+
+        
 
         // 입력 프로세서 설정
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -248,6 +277,9 @@ public class MapGenerationScreen extends AbstractScreen {
     public void render(float delta) {
         // 화면을 지움
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // 시드 라벨 업데이트
+        seedLabel.setText("Current Seed: " + String.valueOf(this.seed));
 
         // 카메라 업데이트
         camera.update();
