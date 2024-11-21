@@ -201,6 +201,10 @@ public class MapGenerationScreen extends AbstractScreen {
         backButton = new TextButton("Back", skin);
         // 재생성 버튼 생성
         regenButton = new TextButton("Regenerate", skin);
+        // 저장 버튼 생성
+        TextButton saveButton = new TextButton("Save", skin);
+        // 현재 시드 라벨 생성
+        seedLabel = new Label("Current Seed: " + this.seed, skin);
 
         // 버튼에 클릭 리스너 추가
         backButton.addListener(new ClickListener() {
@@ -218,20 +222,39 @@ public class MapGenerationScreen extends AbstractScreen {
                 generateMap();
             }
         });
+        // 저장 버튼에 클릭 이벤트 리스너 추가
+        saveButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Save 기능 구현 필요함!
+            }
+        });        
+        
 
-        // 현재 시드 라벨을 생성
-        seedLabel = new Label("Current Seed: " + this.seed, skin);
+        // 테이블을 여러 개로 나누어서 요소를 배치했습니다!
+        // 상단 왼쪽 테이블 생성
+        Table topLeftTable = new Table();
+        topLeftTable.top().left().pad(10);
+        topLeftTable.setFillParent(true);
+        topLeftTable.add(seedLabel).left();
 
-        // 버튼을 스테이지에 추가
-        Table table = new Table();
-        table.setDebug(true);
-        table.setFillParent(true);
-        table.top().left().pad(10); // 버튼 위치 우측으로 변경
-        table.add(backButton).width(100).height(50).space(10);
-        table.add(regenButton).width(100).height(50).space(10);
-        table.add(seedLabel).space(10);
+        // 상단 오른쪽 테이블 생성
+        Table topRightTable = new Table();
+        topRightTable.top().right().pad(10);
+        topRightTable.setFillParent(true);
+        topRightTable.add(regenButton).width(120).height(50).pad(5);
+        topRightTable.add(backButton).width(100).height(50).pad(5);
 
-        stage.addActor(table);
+        // 하단 오른쪽 테이블 생성
+        Table bottomRightTable = new Table();
+        bottomRightTable.bottom().right().pad(10);
+        bottomRightTable.setFillParent(true);
+        bottomRightTable.add(saveButton).width(100).height(50).pad(5);
+
+        // 스테이지에 테이블 추가
+        stage.addActor(topLeftTable);
+        stage.addActor(topRightTable);
+        stage.addActor(bottomRightTable);
 
         // 입력 프로세서 설정
         InputMultiplexer multiplexer = new InputMultiplexer();
