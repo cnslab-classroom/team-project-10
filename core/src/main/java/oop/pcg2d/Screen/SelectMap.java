@@ -44,12 +44,10 @@ public class SelectMap extends AbstractScreen {
 
     public SelectMap(App game) {
         super(game);
+        initUI();
     }
 
-    @Override
-    public void show() {
-        super.show();
-
+    private void initUI() {
         backgroundTexture = new Texture("ui/mine.png");
         background = new Image(backgroundTexture);
         background.setFillParent(true);
@@ -108,6 +106,11 @@ public class SelectMap extends AbstractScreen {
         table.add(backButton).width(150).height(50).pad(10);
         table.row();
 
+        // 이벤트 리스너 설정
+        setListeners(confirmButton, backButton);
+    }
+
+    private void setListeners(TextButton confirmButton, TextButton backButton) {
         // 알고리즘 선택 변경 시 파라미터 테이블 및 맵 사이즈 라벨 업데이트
         algorithmSelectBox.addListener(new ChangeListener() {
             @Override
@@ -145,7 +148,8 @@ public class SelectMap extends AbstractScreen {
                         boolean isConnected = isConnectedCheckBox.isChecked();
 
                         // 맵 생성 화면으로 이동
-                        game.setScreen(new MapGenerationScreen(game, mapWidth, mapHeight, seed, fillProb, isConnected));
+                        game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
+                                fillProb, isConnected));
                     } else if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
                         int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
@@ -160,7 +164,8 @@ public class SelectMap extends AbstractScreen {
                         }
 
                         // 맵 생성 화면으로 이동
-                        game.setScreen(new MapGenerationScreen(game, mapWidth, mapHeight, seed,
+                        // 맵 생성 화면으로 이동
+                        game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
                                 roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend));
                     }
                 } catch (NumberFormatException e) {
@@ -176,6 +181,14 @@ public class SelectMap extends AbstractScreen {
                 game.setScreen(new MainMenuScreen(game));
             }
         });
+    }
+
+    @Override
+    public void show() {
+        super.show();
+
+        // 입력 프로세서 설정
+        Gdx.input.setInputProcessor(stage);
     }
 
     private void updateAlgorithmParamsTable(String algorithm) {

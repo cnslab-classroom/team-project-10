@@ -4,9 +4,16 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Texture;
 
 public class Painter {
+    // MapGenerationScreen에서 사용할 타일 크기
+    // 타일 크기 변수
+    private int tileSize = 16;
+    // 타일 사이즈 getter
+    public int getTileSize() {
+        return tileSize;
+    }
 //1
     public void draw(int[][] x, SpriteBatch batch, Texture[][] image, String algorithm) {   // 입력받은 2차원 배열에 따라 맵 출력, image는 타일 이미지
-        int s = 16;    // 타일 길이
+        int s = tileSize;    // 타일 길이 (변수로 변경했어요)
         int asset_n = 0;
 
         if(algorithm.equals("Cellular Automata")) {
