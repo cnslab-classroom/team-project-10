@@ -43,7 +43,6 @@ public abstract class AbstractScreen implements Screen {
     @Override
     // 각 화면이 렌더링될 때 호출되는 메서드
     public void render(float delta) {
-        // TODO Auto-generated method stub
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // 화면을 지움
         stage.act(delta); // 스테이지의 액터들을 업데이트
         stage.draw(); // 스테이지에 등록된 액터들을 그림
@@ -51,7 +50,6 @@ public abstract class AbstractScreen implements Screen {
     
     @Override
     public void resize(int width, int height) {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Resizing screen: " + getName() + " to: " + width + " x " + height);
 
         // 뷰포트 크기를 화면 크기에 맞춰 업데이트
@@ -61,27 +59,23 @@ public abstract class AbstractScreen implements Screen {
     @Override
     // 화면이 보여질 때 호출되는 메서드
     public void show() {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Showing screen: " + getName());
         Gdx.input.setInputProcessor(stage); // 입력 처리를 현재 스테이지로 설정하여 Actor들이 입력을 받을 수 있도록 함
     }
 
     @Override
     public void pause() {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Pausing screen: " + getName());
         Gdx.input.setInputProcessor(null); // 입력 처리 해제
     }
 
     @Override
     public void resume() {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Resuming screen: " + getName());
     }
 
     @Override
     public void dispose() {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Disposing screen: " + getName());
         stage.dispose();
         skin.dispose();
@@ -89,7 +83,6 @@ public abstract class AbstractScreen implements Screen {
 
     @Override
     public void hide() {
-        // TODO Auto-generated method stub
         Gdx.app.log(App.LOG, "Hiding screen: " + getName());
     }
 }
