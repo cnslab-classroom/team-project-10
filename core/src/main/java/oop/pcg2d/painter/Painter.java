@@ -11,7 +11,6 @@ public class Painter {
     public int getTileSize() {
         return tileSize;
     }
-//1
     public void draw(int[][] x, SpriteBatch batch, Texture[][] image, String algorithm) {   // 입력받은 2차원 배열에 따라 맵 출력, image는 타일 이미지
         int s = tileSize;    // 타일 길이 (변수로 변경했어요)
         int asset_n = 2;    // 타일 이미지 번호
