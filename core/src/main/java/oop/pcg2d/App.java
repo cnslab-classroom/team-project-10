@@ -16,11 +16,6 @@ public class App extends Game {
 
     private MainMenuScreen mainMenuScreen; // 메인 메뉴 화면 인스턴스
 
-
-    private static final int TARGET_FPS = 60; // 원하는 FPS
-    private static final float TARGET_FRAME_TIME = 1.0f / TARGET_FPS; // 프레임당 시간
-    private float accumulator = 0;
-
     @Override
     // 게임이 시작될 때 호출되는 메서드
     public void create() {
@@ -50,26 +45,12 @@ public class App extends Game {
     @Override
     // 매 프레임마다 호출되는 메서드
     public void render() {
-        float deltaTime = Gdx.graphics.getDeltaTime(); // 실제 지난 시간
-        accumulator += deltaTime;
-    
-        if (accumulator >= TARGET_FRAME_TIME) {
-            accumulator -= TARGET_FRAME_TIME;
-    
-            // 현재 활성화된 화면의 render 메서드 호출
-            super.render();
-    
-            // 개발 모드일 때 fps 로그 출력
-            if (DEV_MODE) {
-                this.fpsLogger.log();
-            }
-        } else {
-            // 남은 시간 동안 대기
-            try {
-                Thread.sleep((long)((TARGET_FRAME_TIME - accumulator) * 1000));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // 현재 활성화된 화면의 render 메서드 호출
+        super.render();
+
+        // 개발 모드일 때 fps 로그 출력
+        if (DEV_MODE) {
+            this.fpsLogger.log();
         }
     }
 

@@ -87,7 +87,7 @@ public class MapGenerationScreen extends AbstractScreen {
     private String tileTheme;
 
     // png 저장 시 원하는 해상도 배율 설정
-    final int scaleFactor = 32;
+    final int scaleFactor = 64;
 
     // 생성자 (셀룰러 오토마타 알고리즘용)
     public MapGenerationScreen(App game, SelectMap selectMapScreen, int mapWidth, int mapHeight, long seed,
@@ -476,52 +476,58 @@ public class MapGenerationScreen extends AbstractScreen {
     }
 
     private void saveAsPng() {
-
-    
-        // 확대된 해상도를 가진 FrameBuffer 생성
         int highResWidth = mapWidth * scaleFactor;
         int highResHeight = mapHeight * scaleFactor;
         FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, highResWidth, highResHeight, false);
     
-        // 확대된 카메라 설정 (맵 전체 보기)
         OrthographicCamera highResCamera = new OrthographicCamera();
-        float tileSize = painter.getTileSize(); // 타일 크기 가져오기
-        float worldWidth = mapWidth * tileSize; // 전체 맵 너비
-        float worldHeight = mapHeight * tileSize; // 전체 맵 높이
+        float tileSize = painter.getTileSize();
+        float worldWidth = mapWidth * tileSize;
+        float worldHeight = mapHeight * tileSize;
     
-        // 카메라가 맵 전체를 볼 수 있도록 설정
         highResCamera.setToOrtho(false, worldWidth, worldHeight);
-        highResCamera.position.set(worldWidth / 2, worldHeight / 2, 0); // 맵 중심으로 이동
+        highResCamera.position.set(worldWidth / 2, worldHeight / 2, 0);
         highResCamera.update();
     
-        // FrameBuffer로 렌더링 시작
         frameBuffer.begin();
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     
-        // SpriteBatch에 확대된 카메라 설정
         batch.setProjectionMatrix(highResCamera.combined);
         batch.begin();
-        painter.draw(mapData, batch, tileTextures, algorithm); // 맵 렌더링
+        painter.draw(mapData, batch, tileTextures, algorithm);
         batch.end();
     
-        // FrameBuffer 데이터를 Pixmap으로 가져오기
         Pixmap pixmap = Pixmap.createFromFrameBuffer(0, 0, highResWidth, highResHeight);
-    
-        // FrameBuffer 종료
         frameBuffer.end();
     
-        // 저장 파일 경로 지정 (현재 시간 기반 파일명)
-        String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss"));
-        FileHandle fileHandle = Gdx.files.local("map_" + timeNow + "_highres.png");
+        // 파일 탐색기 열기
+        String savePath = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Choose a location to save the PNG file");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     
-        // Pixmap을 PNG 파일로 저장
-        PixmapIO.writePNG(fileHandle, pixmap);
+        // 기본 파일 이름 설정
+        String defaultFileName = "map_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss")) + ".png";
+        fileChooser.setSelectedFile(new File(defaultFileName));
     
-        // 리소스 해제
+        // 사용자 입력 처리
+        int userSelection = fileChooser.showSaveDialog(null);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            savePath = fileToSave.getAbsolutePath();
+    
+            // 파일 확장자 추가 (필요 시)
+            if (!savePath.endsWith(".png"))
+                savePath += ".png";
+    
+            // Pixmap을 PNG 파일로 저장
+            FileHandle fileHandle = Gdx.files.absolute(savePath);
+            PixmapIO.writePNG(fileHandle, pixmap);
+            // 저장 시 로그 출력
+            Gdx.app.log(App.LOG, "맵이 저장되었습니다: " + savePath);
+        }
         pixmap.dispose();
         frameBuffer.dispose();
-    
-        Gdx.app.log(App.LOG, "고해상도 맵이 저장되었습니다: " + fileHandle.file().getAbsolutePath());
     }
     
     
