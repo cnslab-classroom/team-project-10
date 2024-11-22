@@ -25,8 +25,12 @@ public class SelectMap extends AbstractScreen {
     private Label widthLabel; // 클래스 멤버 변수로 변경
     private Label heightLabel; // 클래스 멤버 변수로 변경
 
+    // 타일 테마 선택 라벨
+    private String[] tileThemes = { "Grass", "Stone", "Lava" };
+    private ButtonGroup<CheckBox> tileThemeGroup;
+
     // Cellular Automata 파라미터
-    private TextField fillProbTextField;
+    private Slider fillProbSlider;
     private CheckBox isConnectedCheckBox;
 
     // Rooms and Mazes 파라미터
@@ -82,6 +86,31 @@ public class SelectMap extends AbstractScreen {
         TextButton confirmButton = new TextButton("Create", skin);
         TextButton backButton = new TextButton("Back", skin);
 
+        // 타일 테마 선택 라벨 및 체크박스
+        Label tileThemeLabel = new Label("Select a Tile Theme:", skin);
+
+        tileThemeGroup = new ButtonGroup<>();
+        tileThemeGroup.setMaxCheckCount(1);
+        tileThemeGroup.setMinCheckCount(1);
+        tileThemeGroup.setUncheckLast(true);
+
+        // for문을 돌며 테이블에 체크박스 추가
+        Table tileThemeTable = new Table();
+        for (String theme : tileThemes) {
+            CheckBox checkBox = new CheckBox(theme, skin);
+            tileThemeGroup.add(checkBox);
+            tileThemeTable.add(checkBox).pad(5);
+        }
+
+        // 기본 값 설정
+        tileThemeGroup.setChecked("Grass");
+
+        // 타일 테마 선택 UI를 테이블에 배치
+        table.add(tileThemeLabel).colspan(2).pad(5);
+        table.row();
+        table.add(tileThemeTable).colspan(2).pad(5);
+        table.row();
+
         // 테이블에 요소 배치
         table.add(algorithmLabel).pad(5);
         table.add(algorithmSelectBox).width(200).pad(5);
@@ -133,6 +162,9 @@ public class SelectMap extends AbstractScreen {
                             : Long.parseLong(seedTextField.getText());
                     String selectedAlgorithm = algorithmSelectBox.getSelected();
 
+                    // 타일 테마 선택
+                    String selectedTileTheme = tileThemeGroup.getChecked().getText().toString();
+
                     // Rooms and Mazes 알고리즘의 경우 맵 크기가 홀수여야 함
                     if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
@@ -144,12 +176,12 @@ public class SelectMap extends AbstractScreen {
 
                     // 알고리즘별 파라미터 가져오기
                     if (selectedAlgorithm.equals("Cellular Automata")) {
-                        double fillProb = Double.parseDouble(fillProbTextField.getText());
+                        double fillProb = fillProbSlider.getValue();
                         boolean isConnected = isConnectedCheckBox.isChecked();
 
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
-                                fillProb, isConnected));
+                                fillProb, isConnected, selectedTileTheme));
                     } else if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
                         int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
@@ -166,7 +198,7 @@ public class SelectMap extends AbstractScreen {
                         // 맵 생성 화면으로 이동
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
-                                roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend));
+                                roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend, selectedTileTheme));
                     }
                 } catch (NumberFormatException e) {
                     // 숫자 형식이 잘못된 경우 오류 메시지 표시
@@ -196,15 +228,29 @@ public class SelectMap extends AbstractScreen {
 
         if (algorithm.equals("Cellular Automata")) {
             // Cellular Automata 파라미터 생성
-            Label fillProbLabel = new Label("Fill Probability (0~1):", skin);
-            fillProbTextField = new TextField("0.45", skin);
+            // 채우기 확률 입력 슬라이더
+            Label fillProbLabel = new Label("Fill Probability (0.4 ~ 0.6):", skin);
+            fillProbSlider = new Slider(0.4f, 0.6f, 0.01f, false, skin);
+            fillProbSlider.setValue(0.45f); // 초기 값 설정
+
+            Label fillProbValueLabel = new Label(String.format("%.2f", fillProbSlider.getValue()), skin);
+
+            // 슬라이더 리스너 추가
+            fillProbSlider.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    fillProbValueLabel.setText(String.format("%.2f", fillProbSlider.getValue()));
+                }
+            });
+            // end of fillProbSlider
 
             isConnectedCheckBox = new CheckBox("Connect Rooms", skin);
             isConnectedCheckBox.setChecked(true);
 
             // 테이블에 추가
             algorithmParamsTable.add(fillProbLabel).pad(5);
-            algorithmParamsTable.add(fillProbTextField).width(200).pad(5);
+            algorithmParamsTable.add(fillProbSlider).width(200).pad(5);
+            algorithmParamsTable.add(fillProbValueLabel).pad(5);
             algorithmParamsTable.row();
 
             algorithmParamsTable.add(isConnectedCheckBox).colspan(2).pad(5);

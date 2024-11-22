@@ -65,9 +65,12 @@ public class MapGenerationScreen extends AbstractScreen {
     // Back 버튼을 눌렀을 때, 이전 SelectMap 인스턴스를 저장하는 변수
     private SelectMap selectMapScreen;
 
+    // 타일 테마 변수
+    private String tileTheme;
+
     // 생성자 (셀룰러 오토마타 알고리즘용)
     public MapGenerationScreen(App game, SelectMap selectMapScreen, int mapWidth, int mapHeight, long seed,
-            double fillProb, boolean isConnected) {
+            double fillProb, boolean isConnected, String tileTheme) {
         super(game);
         this.selectMapScreen = selectMapScreen;
         this.mapWidth = mapWidth;
@@ -76,13 +79,14 @@ public class MapGenerationScreen extends AbstractScreen {
         this.algorithm = "Cellular Automata";
         this.fillProb = fillProb;
         this.isConnected = isConnected;
+        this.tileTheme = tileTheme;
         init();
     }
 
     // 생성자 (Rooms and Mazes 알고리즘용)
     public MapGenerationScreen(App game, SelectMap selectMapScreen, int mapWidth, int mapHeight, long seed,
             int roomMinLen, int roomMaxLen,
-            int roomGenAttempt, boolean removeDeadend) {
+            int roomGenAttempt, boolean removeDeadend, String tileTheme) {
         super(game);
         this.selectMapScreen = selectMapScreen;
         this.mapWidth = mapWidth;
@@ -93,6 +97,7 @@ public class MapGenerationScreen extends AbstractScreen {
         this.roomMaxLen = roomMaxLen;
         this.roomGenAttempt = roomGenAttempt;
         this.removeDeadend = removeDeadend;
+        this.tileTheme = tileTheme;
         init();
     }
 
@@ -160,8 +165,7 @@ public class MapGenerationScreen extends AbstractScreen {
         tileTextures[2][15] = new Texture(Gdx.files.internal("lava_left_right.png"));
         tileTextures[2][16] = new Texture(Gdx.files.internal("lava_top_bot.png"));
 
-
-        painter = new Painter();
+        painter = new Painter(tileTheme);
 
         // 맵 생성
         generateMap();
@@ -197,6 +201,10 @@ public class MapGenerationScreen extends AbstractScreen {
         backButton = new TextButton("Back", skin);
         // 재생성 버튼 생성
         regenButton = new TextButton("Regenerate", skin);
+        // 저장 버튼 생성
+        TextButton saveButton = new TextButton("Save", skin);
+        // 현재 시드 라벨 생성
+        seedLabel = new Label("Current Seed: " + this.seed, skin);
 
         // 버튼에 클릭 리스너 추가
         backButton.addListener(new ClickListener() {
@@ -204,7 +212,6 @@ public class MapGenerationScreen extends AbstractScreen {
             public void clicked(InputEvent event, float x, float y) {
                 // 기존의 SelectMap 화면으로 다시 돌아가기
                 game.setScreen(selectMapScreen);
-                dispose(); // 현재 화면 자원 해제
             }
         });
         regenButton.addListener(new ClickListener() {
@@ -215,22 +222,39 @@ public class MapGenerationScreen extends AbstractScreen {
                 generateMap();
             }
         });
-
-        // 현재 시드 라벨을 생성
-        seedLabel = new Label("Current Seed: " + this.seed, skin);
+        // 저장 버튼에 클릭 이벤트 리스너 추가
+        saveButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Save 기능 구현 필요함!
+            }
+        });        
         
-        // 버튼을 스테이지에 추가
-        Table table = new Table();
-        table.setDebug(true);
-        table.setFillParent(true);
-        table.top().left().pad(10); // 버튼 위치 우측으로 변경
-        table.add(backButton).width(100).height(50).space(10);
-        table.add(regenButton).width(100).height(50).space(10);
-        table.add(seedLabel).space(10);
 
-        stage.addActor(table);
+        // 테이블을 여러 개로 나누어서 요소를 배치했습니다!
+        // 상단 왼쪽 테이블 생성
+        Table topLeftTable = new Table();
+        topLeftTable.top().left().pad(10);
+        topLeftTable.setFillParent(true);
+        topLeftTable.add(seedLabel).left();
 
-        
+        // 상단 오른쪽 테이블 생성
+        Table topRightTable = new Table();
+        topRightTable.top().right().pad(10);
+        topRightTable.setFillParent(true);
+        topRightTable.add(regenButton).width(120).height(50).pad(5);
+        topRightTable.add(backButton).width(100).height(50).pad(5);
+
+        // 하단 오른쪽 테이블 생성
+        Table bottomRightTable = new Table();
+        bottomRightTable.bottom().right().pad(10);
+        bottomRightTable.setFillParent(true);
+        bottomRightTable.add(saveButton).width(100).height(50).pad(5);
+
+        // 스테이지에 테이블 추가
+        stage.addActor(topLeftTable);
+        stage.addActor(topRightTable);
+        stage.addActor(bottomRightTable);
 
         // 입력 프로세서 설정
         InputMultiplexer multiplexer = new InputMultiplexer();
