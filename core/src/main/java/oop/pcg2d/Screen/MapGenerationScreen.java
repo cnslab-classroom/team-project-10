@@ -13,14 +13,19 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import oop.pcg2d.generator.CellularAutomata;
 import oop.pcg2d.generator.RoomsAndMazes;
@@ -55,6 +60,8 @@ public class MapGenerationScreen extends AbstractScreen {
     private SpriteBatch batch;
     private Texture[][] tileTextures;
     private Painter painter;
+
+    private Stage uiStage;
 
     // 뒤로가기 버튼 변수
     private TextButton backButton;
@@ -117,6 +124,9 @@ public class MapGenerationScreen extends AbstractScreen {
 
     private void init() {
         batch = new SpriteBatch();
+        
+        stage.setViewport(new ExtendViewport(mapWidth, mapHeight));
+        uiStage = new Stage(new ScreenViewport());
 
         // 화면의 크기를 가져와서 카메라의 뷰포트 크기로 설정
         float w = Gdx.graphics.getWidth(); // 화면의 너비
@@ -125,6 +135,7 @@ public class MapGenerationScreen extends AbstractScreen {
 
         // 카메라의 크기를 화면의 크기로 설정
         camera.setToOrtho(false, w, h);
+        this.stage.getViewport().setCamera(camera);
 
         // 타일 텍스처 로드
         tileTextures = new Texture[6][];
@@ -275,15 +286,15 @@ public class MapGenerationScreen extends AbstractScreen {
         bottomRightTable.add(savePngButton).width(120).height(50).space(10);
 
         // 스테이지에 테이블 추가
-        stage.addActor(topLeftTable);
-        stage.addActor(topRightTable);
-        stage.addActor(bottomRightTable);
+        uiStage.addActor(topLeftTable);
+        uiStage.addActor(topRightTable);
+        uiStage.addActor(bottomRightTable);
 
         // 입력 프로세서 설정
         InputMultiplexer multiplexer = new InputMultiplexer();
 
         // 스테이지의 입력 프로세서 추가
-        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(uiStage);
 
         // 마우스 입력 프로세서 추가
         multiplexer.addProcessor(new InputAdapter() {
@@ -370,6 +381,16 @@ public class MapGenerationScreen extends AbstractScreen {
         // 스테이지를 업데이트하고 그리기
         stage.act(delta);
         stage.draw();
+        uiStage.act(delta);
+        uiStage.draw();
+    }
+
+    // UI
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
+        // uiStage의 뷰포트 크기를 화면 크기에 맞춰 업데이트
+        uiStage.getViewport().update(width, height, true);
     }
 
     // 카메라 위치를 맵 내부로 제한하는 메서드임
@@ -417,6 +438,7 @@ public class MapGenerationScreen extends AbstractScreen {
                 t.dispose();
             }
         }
+        uiStage.dispose();
     }
 
     private void saveAsTxt() {
