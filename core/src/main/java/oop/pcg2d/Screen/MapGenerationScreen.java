@@ -60,6 +60,10 @@ public class MapGenerationScreen extends AbstractScreen {
     private TextButton backButton;
     // 재생성 버튼 변수
     private TextButton regenButton;
+    // .txt 파일 저장 버튼 변수
+    private TextButton saveTxtButton;
+    // .png 파일 저장 버튼 변수
+    private TextButton savePngButton;
 
     // 현재 시드 라벨 변수
     private Label seedLabel;
@@ -211,8 +215,9 @@ public class MapGenerationScreen extends AbstractScreen {
         backButton = new TextButton("Back", skin);
         // 재생성 버튼 생성
         regenButton = new TextButton("Regenerate", skin);
-        // 저장 버튼 생성
-        TextButton saveButton = new TextButton("Save As .txt", skin);
+        // 각 저장 버튼 생성
+        saveTxtButton = new TextButton("Save As TXT", skin);
+        savePngButton = new TextButton("Save As PNG", skin);
         // 현재 시드 라벨 생성
         seedLabel = new Label("Current Seed: " + this.seed, skin);
 
@@ -232,14 +237,20 @@ public class MapGenerationScreen extends AbstractScreen {
                 generateMap();
             }
         });
-        // 저장 버튼에 클릭 이벤트 리스너 추가
-        saveButton.addListener(new ClickListener() {
+
+        // 각 저장 버튼에 클릭 이벤트 리스너 추가
+        saveTxtButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Save 기능 구현 필요함!
                 saveAsTxt();
             }
-        });        
+        });
+        savePngButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // png 파일 저장 기능 구현 필요!
+            }
+        });
         
 
         // 테이블을 여러 개로 나누어서 요소를 배치했습니다!
@@ -253,14 +264,15 @@ public class MapGenerationScreen extends AbstractScreen {
         Table topRightTable = new Table();
         topRightTable.top().right().pad(10);
         topRightTable.setFillParent(true);
-        topRightTable.add(regenButton).width(120).height(50).pad(5);
-        topRightTable.add(backButton).width(100).height(50).pad(5);
+        topRightTable.add(regenButton).width(120).height(50).space(10);
+        topRightTable.add(backButton).width(120).height(50).space(10);
 
         // 하단 오른쪽 테이블 생성
         Table bottomRightTable = new Table();
         bottomRightTable.bottom().right().pad(10);
         bottomRightTable.setFillParent(true);
-        bottomRightTable.add(saveButton).width(100).height(50).pad(5);
+        bottomRightTable.add(saveTxtButton).width(120).height(50).space(10);
+        bottomRightTable.add(savePngButton).width(120).height(50).space(10);
 
         // 스테이지에 테이블 추가
         stage.addActor(topLeftTable);
