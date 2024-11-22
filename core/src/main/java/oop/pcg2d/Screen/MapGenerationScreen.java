@@ -476,37 +476,21 @@ public class MapGenerationScreen extends AbstractScreen {
     }
 
     private void saveAsPng() {
-        int highResWidth = mapWidth * scaleFactor;
-        int highResHeight = mapHeight * scaleFactor;
-        FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, highResWidth, highResHeight, false);
+        // Swing GUI를 OS 비주얼에 맞게 설정
+        String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception e) {
+            Gdx.app.log(App.LOG, "Error setting Look and Feel: " + e.getMessage());
+        }
     
-        OrthographicCamera highResCamera = new OrthographicCamera();
-        float tileSize = painter.getTileSize();
-        float worldWidth = mapWidth * tileSize;
-        float worldHeight = mapHeight * tileSize;
-    
-        highResCamera.setToOrtho(false, worldWidth, worldHeight);
-        highResCamera.position.set(worldWidth / 2, worldHeight / 2, 0);
-        highResCamera.update();
-    
-        frameBuffer.begin();
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-    
-        batch.setProjectionMatrix(highResCamera.combined);
-        batch.begin();
-        painter.draw(mapData, batch, tileTextures, algorithm);
-        batch.end();
-    
-        Pixmap pixmap = Pixmap.createFromFrameBuffer(0, 0, highResWidth, highResHeight);
-        frameBuffer.end();
-    
-        // 파일 탐색기 열기
-        String savePath = null;
+        // 파일 선택 창 생성
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose a location to save the PNG file");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     
-        // 기본 파일 이름 설정
+        // 선택한 디렉토리에 새로운 파일 생성
+        // 현재 시간을 이름으로 가진 새로운 .png 파일 생성
         String defaultFileName = "map_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss")) + ".png";
         fileChooser.setSelectedFile(new File(defaultFileName));
     
@@ -514,21 +498,44 @@ public class MapGenerationScreen extends AbstractScreen {
         int userSelection = fileChooser.showSaveDialog(null);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = fileChooser.getSelectedFile();
-            savePath = fileToSave.getAbsolutePath();
-    
+            String savePath = fileToSave.getAbsolutePath();
             // 파일 확장자 추가 (필요 시)
-            if (!savePath.endsWith(".png"))
+            if (!savePath.endsWith(".png")) {
                 savePath += ".png";
+            }
+
+            // PNG 저장 작업
+            int highResWidth = mapWidth * scaleFactor;
+            int highResHeight = mapHeight * scaleFactor;
+            FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, highResWidth, highResHeight, false);
     
-            // Pixmap을 PNG 파일로 저장
+            OrthographicCamera highResCamera = new OrthographicCamera();
+            float tileSize = painter.getTileSize();
+            float worldWidth = mapWidth * tileSize;
+            float worldHeight = mapHeight * tileSize;
+    
+            highResCamera.setToOrtho(false, worldWidth, worldHeight);
+            highResCamera.position.set(worldWidth / 2, worldHeight / 2, 0);
+            highResCamera.update();
+    
+            frameBuffer.begin();
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    
+            batch.setProjectionMatrix(highResCamera.combined);
+            batch.begin();
+            painter.draw(mapData, batch, tileTextures, algorithm);
+            batch.end();
+    
+            Pixmap pixmap = Pixmap.createFromFrameBuffer(0, 0, highResWidth, highResHeight);
+            frameBuffer.end();
+    
+            // Pixmap을 PNG로 저장
             FileHandle fileHandle = Gdx.files.absolute(savePath);
             PixmapIO.writePNG(fileHandle, pixmap);
-            // 저장 시 로그 출력
-            Gdx.app.log(App.LOG, "맵이 저장되었습니다: " + savePath);
+    
+            // 리소스 해제
+            pixmap.dispose();
+            frameBuffer.dispose();
         }
-        pixmap.dispose();
-        frameBuffer.dispose();
     }
-    
-    
 }
