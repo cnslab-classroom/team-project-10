@@ -1,6 +1,16 @@
 package oop.pcg2d.Screen;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
+
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -202,7 +212,7 @@ public class MapGenerationScreen extends AbstractScreen {
         // 재생성 버튼 생성
         regenButton = new TextButton("Regenerate", skin);
         // 저장 버튼 생성
-        TextButton saveButton = new TextButton("Save", skin);
+        TextButton saveButton = new TextButton("Save As .txt", skin);
         // 현재 시드 라벨 생성
         seedLabel = new Label("Current Seed: " + this.seed, skin);
 
@@ -227,6 +237,7 @@ public class MapGenerationScreen extends AbstractScreen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Save 기능 구현 필요함!
+                saveAsTxt();
             }
         });        
         
@@ -392,6 +403,54 @@ public class MapGenerationScreen extends AbstractScreen {
         for (Texture[] texture : tileTextures) {
             for (Texture t : texture) {
                 t.dispose();
+            }
+        }
+    }
+
+    private void saveAsTxt() {
+        // swing GUI를 OS 비주얼에 맞게 설정
+        String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        }
+        catch (Exception e) {
+            Gdx.app.log(App.LOG, "Error: " + e.getMessage());
+        }
+        JFrame window = new JFrame();
+
+        // 파일 선택 창 생성
+        JFileChooser saveFileChooser = new JFileChooser();
+        saveFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        // 선택한 디렉토리에 새로운 파일 생성
+        int result = saveFileChooser.showSaveDialog(window);
+        if (result == JFileChooser.APPROVE_OPTION) {
+		    File selectedDirectory = saveFileChooser.getSelectedFile();
+            String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HHmmss"));
+
+            // 현재 시간을 이름으로 가진 새로운 .txt 파일 생성
+            File saveFile = new File(selectedDirectory.getAbsolutePath() + File.separator + timeNow + ".txt");
+            try {
+                saveFile.createNewFile();
+            }
+            catch (Exception e) {
+                Gdx.app.log(App.LOG, "Error: " + e.getMessage());
+                JOptionPane.showMessageDialog(window, "Error: " + e.getMessage());
+            }
+
+            // 파일에 맵 데이터 저장
+            try {
+                FileWriter saveFileWriter = new FileWriter(saveFile);
+                for (int y = 0; y < mapHeight; y++) {
+                    for (int x = 0; x < mapWidth; x++) {
+                        saveFileWriter.write(String.valueOf(mapData[y][x]));
+                    }
+                    saveFileWriter.write("\n");
+                }
+                saveFileWriter.close();
+            }
+            catch (IOException e) {
+                Gdx.app.log(App.LOG, "Error: " + e.getMessage());
             }
         }
     }
