@@ -489,7 +489,6 @@ public class MapGenerationScreen extends AbstractScreen {
         fileChooser.setDialogTitle("Choose a location to save the PNG file");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     
-        // 선택한 디렉토리에 새로운 파일 생성
         // 현재 시간을 이름으로 가진 새로운 .png 파일 생성
         String defaultFileName = "map_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss")) + ".png";
         fileChooser.setSelectedFile(new File(defaultFileName));
@@ -499,7 +498,6 @@ public class MapGenerationScreen extends AbstractScreen {
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToSave = fileChooser.getSelectedFile();
             String savePath = fileToSave.getAbsolutePath();
-            // 파일 확장자 추가 (필요 시)
             if (!savePath.endsWith(".png")) {
                 savePath += ".png";
             }
@@ -529,13 +527,33 @@ public class MapGenerationScreen extends AbstractScreen {
             Pixmap pixmap = Pixmap.createFromFrameBuffer(0, 0, highResWidth, highResHeight);
             frameBuffer.end();
     
+            // Pixmap 반전
+            Pixmap flippedPixmap = flipPixmap(pixmap);
+    
             // Pixmap을 PNG로 저장
             FileHandle fileHandle = Gdx.files.absolute(savePath);
-            PixmapIO.writePNG(fileHandle, pixmap);
+            PixmapIO.writePNG(fileHandle, flippedPixmap);
     
             // 리소스 해제
             pixmap.dispose();
+            flippedPixmap.dispose();
             frameBuffer.dispose();
         }
+    }
+
+    private Pixmap flipPixmap(Pixmap pixmap) {
+        int width = pixmap.getWidth();
+        int height = pixmap.getHeight();
+        Pixmap flipped = new Pixmap(width, height, pixmap.getFormat());
+
+        // 상하 반전
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixel = pixmap.getPixel(x, y);
+                flipped.drawPixel(x, height - y - 1, pixel);
+            }
+        }
+
+        return flipped;
     }
 }
