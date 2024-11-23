@@ -26,7 +26,7 @@ public class SelectMap extends AbstractScreen {
     private Label heightLabel; // 클래스 멤버 변수로 변경
 
     // 타일 테마 선택 라벨
-    private String[] tileThemes = { "Grass", "Stone", "Lava" };
+    private String[] tileThemes = { "Grass", "Cave", "Lava" };
     private ButtonGroup<CheckBox> tileThemeGroup;
 
     // Cellular Automata 파라미터
