@@ -61,7 +61,7 @@ public class MapGenerationScreen extends AbstractScreen {
     private Texture[][] tileTextures;
     private Painter painter;
 
-    private Stage uiStage;
+    private Stage uiStage; // UI 스테이지 변수
 
     // 뒤로가기 버튼 변수
     private TextButton backButton;
@@ -124,9 +124,6 @@ public class MapGenerationScreen extends AbstractScreen {
 
     private void init() {
         batch = new SpriteBatch();
-        
-        stage.setViewport(new ExtendViewport(mapWidth, mapHeight));
-        uiStage = new Stage(new ScreenViewport());
 
         // 화면의 크기를 가져와서 카메라의 뷰포트 크기로 설정
         float w = Gdx.graphics.getWidth(); // 화면의 너비
@@ -135,7 +132,12 @@ public class MapGenerationScreen extends AbstractScreen {
 
         // 카메라의 크기를 화면의 크기로 설정
         camera.setToOrtho(false, w, h);
-        this.stage.getViewport().setCamera(camera);
+
+        // 스테이지 생성 (기존 카메라 이용해서 생성했습니다)
+        stage = new Stage(new ScreenViewport(camera));
+
+        // UI 스테이지 생성
+        uiStage = new Stage(new ScreenViewport());
 
         // 타일 텍스처 로드
         tileTextures = new Texture[6][];
@@ -385,11 +387,18 @@ public class MapGenerationScreen extends AbstractScreen {
         uiStage.draw();
     }
 
-    // UI
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        // uiStage의 뷰포트 크기를 화면 크기에 맞춰 업데이트
+
+        // 카메라의 뷰포트 업데이트
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
+        camera.update();
+
+        // 스테이지의 뷰포트 업데이트
+        stage.getViewport().update(width, height, true);
+        // UI 스테이지의 뷰포트 업데이트
         uiStage.getViewport().update(width, height, true);
     }
 
