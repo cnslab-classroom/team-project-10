@@ -1,6 +1,5 @@
 package oop.pcg2d.Screen;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -45,34 +44,37 @@ public class MainMenuScreen extends AbstractScreen {
         // 배경 이미지보다 나중에 추가되므로, 배경 이미지 위에 테이블의 요소들이 그려짐
 
         // 프로그램 제목 레이블 생성
-        Label titleLabel = new Label("MapGenerator with Java", skin);
-        titleLabel.setFontScale(2); // 글자 크기
-        titleLabel.setColor(Color.GOLD); // 글자 색상
+        Label titleLabel = new Label("MapGenerator", skin, "title");
 
         // 제목을 테이블에 추가
-        table.add(titleLabel).colspan(2).pad(10);
+        table.add(titleLabel).pad(10);
         table.row();
 
         // 버튼 생성
         TextButton button1 = new TextButton("Start", skin);
-        button1.setColor(Color.WHITE);
-        TextButton button2 = new TextButton("Settings", skin);
-        button2.setColor(Color.WHITE);
+        TextButton button2 = new TextButton("Information", skin);
         TextButton button3 = new TextButton("Exit", skin);
-        button3.setColor(Color.WHITE);
 
         // 버튼을 테이블에 추가
-        table.add(button1).width(200).height(50).pad(10);
+        table.add(button1).width(600).height(65).pad(10).colspan(2).center();
         table.row(); // 다음 행으로 이동
-        table.add(button2).width(200).height(50).pad(10);
+        table.add(button2).width(600).height(65).pad(10).colspan(2).center();
         table.row();
-        table.add(button3).width(200).height(50).pad(10);
+        table.add(button3).width(600).height(65).pad(10).colspan(2).center();
 
         // "Start" 버튼에 클릭 이벤트 리스너 추가
         button1.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new SelectMap(game));
+            }
+        });
+
+        // "Information" 버튼에 클릭 이벤트 리스너 추가
+        button2.addListener(new ClickListener() { // 리스너 추가
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new InformationScreen(game)); // 새로운 화면으로 이동
             }
         });
 
