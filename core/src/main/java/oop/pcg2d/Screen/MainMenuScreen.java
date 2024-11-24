@@ -47,7 +47,7 @@ public class MainMenuScreen extends AbstractScreen {
         stage.addActor(table); // 스테이지에 테이블 추가
         // 배경 이미지보다 나중에 추가되므로, 배경 이미지 위에 테이블의 요소들이 그려짐
 
-
+        // 1. FreeTypeFontGenerator를 사용하여 폰트 생성
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Maplestory Bold.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 48; // 크기 설정
