@@ -12,12 +12,15 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.Gdx;
 
 public class MainMenuScreen extends AbstractScreen {
 
     // 텍스처 클래스는 이미지 파일을 GPU 메모리에 로드하고 관리하는 클래스
     private Texture backgroundTexture;
+    private BitmapFont font; // 생성한 폰트를 저장
 
     private Image background; // Actor의 한 종류로, 이미지를 화면에 그리는 역할 (Actor의 서브클래스)
     // 텍스처를 사용하여 이미지를 생성하고, 스테이지에 추가함
@@ -44,14 +47,25 @@ public class MainMenuScreen extends AbstractScreen {
         stage.addActor(table); // 스테이지에 테이블 추가
         // 배경 이미지보다 나중에 추가되므로, 배경 이미지 위에 테이블의 요소들이 그려짐
 
-        // 프로그램 제목 레이블 생성
-        Label titleLabel = new Label("MapGenerator with Java", skin);
-        titleLabel.setFontScale(2); // 글자 크기
-        titleLabel.setColor(Color.GOLD); // 글자 색상
+
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Maplestory Bold.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 48; // 크기 설정
+        parameter.color = Color.BLACK; // 색상 설정
+        font = generator.generateFont(parameter); // 폰트 생성
+        generator.dispose(); // 리소스 관리
+
+        // 2. LabelStyle에 폰트 설정
+        Label.LabelStyle labelStyle = new Label.LabelStyle();
+        labelStyle.font = font;
+
+        // 3. Label 생성
+        Label titleLabel = new Label("MapGenerator with Java", labelStyle);
 
         // 제목을 테이블에 추가
         table.add(titleLabel).colspan(2).pad(10);
         table.row();
+
 
         // 버튼 생성
         TextButton button1 = new TextButton("Start", skin);
