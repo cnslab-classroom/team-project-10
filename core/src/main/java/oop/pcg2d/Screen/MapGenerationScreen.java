@@ -481,17 +481,23 @@ public class MapGenerationScreen extends AbstractScreen {
     public void resize(int width, int height) {
         super.resize(width, height);
 
+        // 현재 줌 상태를 저장
+        float currentZoom = camera.zoom;
+
         // 카메라의 뷰포트 업데이트
         camera.viewportWidth = width;
         camera.viewportHeight = height;
-        
-        updateCamera();
+
+        // 카메라의 줌 상태를 유지하며 업데이트
+        camera.update();
+        camera.zoom = currentZoom;
 
         // 스테이지의 뷰포트 업데이트
         stage.getViewport().update(width, height, true);
         // UI 스테이지의 뷰포트 업데이트
         uiStage.getViewport().update(width, height, true);
     }
+
 
     // 카메라 위치를 맵 내부로 제한하는 메서드임
     private void clampCamera() {
