@@ -478,48 +478,25 @@ public class MapGenerationScreen extends AbstractScreen {
     }
 
     @Override
-public void resize(int width, int height) {
-    super.resize(width, height);
+    public void resize(int width, int height) {
+        super.resize(width, height);
 
-    // 현재 줌 상태를 저장
-    float currentZoom = camera.zoom;
+        // 현재 줌 상태를 저장
+        float currentZoom = camera.zoom;
 
-    // 기존 카메라 중심 위치 저장
-    float oldCenterX = camera.position.x;
-    float oldCenterY = camera.position.y;
+        // 카메라의 뷰포트 업데이트
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
 
-    // 뷰포트 크기 업데이트
-    camera.viewportWidth = width;
-    camera.viewportHeight = height;
+        // 카메라의 줌 상태를 유지하며 업데이트
+        camera.update();
+        camera.zoom = currentZoom;
 
-    // 새로운 뷰포트 크기 계산
-    float newViewportWidth = camera.viewportWidth * currentZoom;
-    float newViewportHeight = camera.viewportHeight * currentZoom;
-
-    // 맵 크기 계산 (픽셀 단위)
-    float tileSize = painter.getTileSize();
-    float mapWidthInPixels = mapData[0].length * tileSize;
-    float mapHeightInPixels = mapData.length * tileSize;
-
-    // 새로운 카메라 위치 계산
-    float minX = newViewportWidth / 2;
-    float maxX = mapWidthInPixels - newViewportWidth / 2;
-    float minY = newViewportHeight / 2;
-    float maxY = mapHeightInPixels - newViewportHeight / 2;
-
-    // 기존 중심 좌표를 기반으로 새 화면 비율에 맞게 조정
-    float newCenterX = MathUtils.clamp(oldCenterX, minX, maxX);
-    float newCenterY = MathUtils.clamp(oldCenterY, minY, maxY);
-
-    // 카메라 위치 및 줌 업데이트
-    camera.position.set(newCenterX, newCenterY, 0);
-    camera.zoom = currentZoom;
-    camera.update();
-
-    // 스테이지의 뷰포트 업데이트
-    stage.getViewport().update(width, height, true);
-    uiStage.getViewport().update(width, height, true);
-}
+        // 스테이지의 뷰포트 업데이트
+        stage.getViewport().update(width, height, true);
+        // UI 스테이지의 뷰포트 업데이트
+        uiStage.getViewport().update(width, height, true);
+    }
 
 
 
