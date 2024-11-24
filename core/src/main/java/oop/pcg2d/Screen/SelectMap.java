@@ -142,7 +142,7 @@ public class SelectMap extends AbstractScreen {
         mainTable.row();
 
         // 랜덤 시드 입력 필드
-        Label seedLabel = new Label("Random Seed:", skin);
+        Label seedLabel = new Label("Enter Seed Value:", skin);
         seedTextField = new TextField("", skin);
         seedOptionalLabel = new Label("Seed is Optional", skin);
         seedOptionalLabel.setColor(Color.GRAY); // 회색 글씨 설정

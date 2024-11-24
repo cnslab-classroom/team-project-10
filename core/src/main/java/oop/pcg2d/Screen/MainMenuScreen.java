@@ -52,7 +52,7 @@ public class MainMenuScreen extends AbstractScreen {
 
         // 버튼 생성
         TextButton button1 = new TextButton("Start", skin);
-        TextButton button2 = new TextButton("Settings", skin);
+        TextButton button2 = new TextButton("Information", skin);
         TextButton button3 = new TextButton("Exit", skin);
 
         // 버튼을 테이블에 추가
@@ -67,6 +67,14 @@ public class MainMenuScreen extends AbstractScreen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new SelectMap(game));
+            }
+        });
+
+        // "Information" 버튼에 클릭 이벤트 리스너 추가
+        button2.addListener(new ClickListener() { // 리스너 추가
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new InformationScreen(game)); // 새로운 화면으로 이동
             }
         });
 
