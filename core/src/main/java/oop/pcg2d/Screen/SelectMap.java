@@ -1,9 +1,8 @@
 package oop.pcg2d.Screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.utils.Align;
 
 import oop.pcg2d.App;
 
@@ -11,29 +10,34 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
+
 import java.util.Random;
 
 public class SelectMap extends AbstractScreen {
 
     private String[] algorithms = { "Cellular Automata", "Rooms and Mazes" };
-    private SelectBox<String> algorithmSelectBox;
+    private int algorithmIndex = 0;
+    private TextButton algorithmButton;
 
     // 공통 파라미터
     private TextField widthTextField;
     private TextField heightTextField;
     private TextField seedTextField;
-    private Label widthLabel; // 클래스 멤버 변수로 변경
-    private Label heightLabel; // 클래스 멤버 변수로 변경
+    private Label widthLabel;
+    private Label heightLabel;
+    private Label seedOptionalLabel;
 
-    // 타일 테마 선택 라벨
+    // 타일 테마 선택
     private String[] tileThemes = { "Grass", "Stone", "Lava" };
     private ButtonGroup<CheckBox> tileThemeGroup;
 
-    // Cellular Automata 파라미터
+    // 알고리즘별 파라미터
     private Slider fillProbSlider;
     private CheckBox isConnectedCheckBox;
 
-    // Rooms and Mazes 파라미터
     private TextField roomMinLenTextField;
     private TextField roomMaxLenTextField;
     private TextField roomGenAttemptTextField;
@@ -43,8 +47,10 @@ public class SelectMap extends AbstractScreen {
     private Table algorithmParamsTable;
 
     // 배경 이미지 텍스처
-    private Texture backgroundTexture;
     private Image background;
+
+    // 공통 체크박스 스타일
+    private CheckBox.CheckBoxStyle customCheckBoxStyle;
 
     public SelectMap(App game) {
         super(game);
@@ -52,101 +58,147 @@ public class SelectMap extends AbstractScreen {
     }
 
     private void initUI() {
-        backgroundTexture = new Texture("ui/mine.png");
-        background = new Image(backgroundTexture);
+
+        // 스킨에서 'dirt' 드로어블 가져오기
+        Drawable dirtDrawable = skin.getDrawable("dirt");
+
+        // 'dirt' 드로어블을 TiledDrawable로 변환
+        TiledDrawable backgroundTiledDrawable = new TiledDrawable((TextureRegionDrawable) dirtDrawable);
+
+        // TiledDrawable로 Image 생성
+        background = new Image(backgroundTiledDrawable);
         background.setFillParent(true);
         stage.addActor(background);
 
         // 메인 테이블 생성 및 설정
-        Table table = new Table();
-        table.setFillParent(true);
-        table.align(Align.center);
-        stage.addActor(table);
+        Table mainTable = new Table();
+        mainTable.setFillParent(true);
+        mainTable.center().pad(10); // 전체 패딩 추가
+        stage.addActor(mainTable);
 
-        // 맵 생성 알고리즘 선택
-        Label algorithmLabel = new Label("Select a Map Algorithm:", skin);
-        algorithmSelectBox = new SelectBox<>(skin);
-        algorithmSelectBox.setItems(algorithms);
+        // 화면 제목 추가
+        Label titleLabel = new Label("Create New Map", skin, "bold");
+        mainTable.add(titleLabel).colspan(2).center().padBottom(20);
+        mainTable.row();
 
-        // 공통 파라미터 입력 필드
-        widthLabel = new Label("Map Width Size:", skin); // 라벨을 클래스 멤버 변수로 선언
-        widthTextField = new TextField("", skin);
-
-        heightLabel = new Label("Map Height Size:", skin); // 라벨을 클래스 멤버 변수로 선언
-        heightTextField = new TextField("", skin);
-
-        Label seedLabel = new Label("Enter a Random Seed:", skin);
-        seedTextField = new TextField("", skin);
-
-        // 알고리즘별 파라미터 테이블
-        algorithmParamsTable = new Table();
-        updateAlgorithmParamsTable("Cellular Automata"); // 초기 알고리즘에 맞게 파라미터 테이블 생성
-
-        // 확인 및 취소 버튼 생성
-        TextButton confirmButton = new TextButton("Create", skin);
-        TextButton backButton = new TextButton("Back", skin);
-
-        // 타일 테마 선택 라벨 및 체크박스
+        // 타일 테마 선택 부분
         Label tileThemeLabel = new Label("Select a Tile Theme:", skin);
-
         tileThemeGroup = new ButtonGroup<>();
         tileThemeGroup.setMaxCheckCount(1);
         tileThemeGroup.setMinCheckCount(1);
         tileThemeGroup.setUncheckLast(true);
 
-        // for문을 돌며 테이블에 체크박스 추가
+        // 타일 테마 체크박스 스타일 생성
+        CheckBox.CheckBoxStyle tileThemeCheckBoxStyle = new CheckBox.CheckBoxStyle();
+        tileThemeCheckBoxStyle.checkboxOn = skin.getDrawable("armor");
+        tileThemeCheckBoxStyle.checkboxOff = skin.getDrawable("armor-bg");
+        tileThemeCheckBoxStyle.font = skin.getFont("font");
+
+        // 드로어블 크기 조정
+        float drawableScale = 2f; // 원하는 크기 배율
+        tileThemeCheckBoxStyle.checkboxOn.setMinWidth(tileThemeCheckBoxStyle.checkboxOn.getMinWidth() * drawableScale);
+        tileThemeCheckBoxStyle.checkboxOn
+                .setMinHeight(tileThemeCheckBoxStyle.checkboxOn.getMinHeight() * drawableScale);
+        tileThemeCheckBoxStyle.checkboxOff
+                .setMinWidth(tileThemeCheckBoxStyle.checkboxOff.getMinWidth() * drawableScale);
+        tileThemeCheckBoxStyle.checkboxOff
+                .setMinHeight(tileThemeCheckBoxStyle.checkboxOff.getMinHeight() * drawableScale);
+
+        // 공통 체크박스 스타일 생성
+        customCheckBoxStyle = new CheckBox.CheckBoxStyle();
+        customCheckBoxStyle.checkboxOn = skin.getDrawable("heart");
+        customCheckBoxStyle.checkboxOff = skin.getDrawable("heart-bg");
+        customCheckBoxStyle.font = skin.getFont("font");
+
+        // 드로어블 크기 조정
+        customCheckBoxStyle.checkboxOn.setMinWidth(customCheckBoxStyle.checkboxOn.getMinWidth() * drawableScale);
+        customCheckBoxStyle.checkboxOn.setMinHeight(customCheckBoxStyle.checkboxOn.getMinHeight() * drawableScale);
+        customCheckBoxStyle.checkboxOff.setMinWidth(customCheckBoxStyle.checkboxOff.getMinWidth() * drawableScale);
+        customCheckBoxStyle.checkboxOff.setMinHeight(customCheckBoxStyle.checkboxOff.getMinHeight() * drawableScale);
+
         Table tileThemeTable = new Table();
         for (String theme : tileThemes) {
-            CheckBox checkBox = new CheckBox(theme, skin);
+            CheckBox checkBox = new CheckBox(theme, tileThemeCheckBoxStyle);
             tileThemeGroup.add(checkBox);
-            tileThemeTable.add(checkBox).pad(5);
+            tileThemeTable.add(checkBox).left().padRight(10);
+            // tileThemeTable.row();
         }
-
-        // 기본 값 설정
         tileThemeGroup.setChecked("Grass");
 
-        // 타일 테마 선택 UI를 테이블에 배치
-        table.add(tileThemeLabel).colspan(2).pad(5);
-        table.row();
-        table.add(tileThemeTable).colspan(2).pad(5);
-        table.row();
+        // 타일 테마 선택 추가
+        mainTable.add(tileThemeLabel).left().colspan(2).padBottom(10);
+        mainTable.row();
+        mainTable.add(tileThemeTable).colspan(2).center().padBottom(20);
+        mainTable.row();
 
-        // 테이블에 요소 배치
-        table.add(algorithmLabel).pad(5);
-        table.add(algorithmSelectBox).width(200).pad(5);
-        table.row();
+        // 공통 파라미터 입력 필드
+        widthLabel = new Label("Map Width Size:", skin);
+        widthTextField = new TextField("", skin);
 
-        table.add(widthLabel).pad(5);
-        table.add(widthTextField).width(200).pad(5);
-        table.row();
+        heightLabel = new Label("Map Height Size:", skin);
+        heightTextField = new TextField("", skin);
 
-        table.add(heightLabel).pad(5);
-        table.add(heightTextField).width(200).pad(5);
-        table.row();
+        // 너비와 높이 입력 필드를 한 행에 배치
+        Table sizeTable = new Table();
+        sizeTable.add(widthLabel).left().padRight(5);
+        sizeTable.add(widthTextField).width(100).padRight(20);
+        sizeTable.add(heightLabel).left().padRight(5);
+        sizeTable.add(heightTextField).width(100);
+        mainTable.add(sizeTable).colspan(2).center().padBottom(20);
+        mainTable.row();
 
-        table.add(seedLabel).pad(5);
-        table.add(seedTextField).width(200).pad(5);
-        table.row();
+        // 알고리즘 선택 버튼
+        algorithmButton = new TextButton("Algorithm: " + algorithms[algorithmIndex], skin);
+        mainTable.add(algorithmButton).colspan(2).center().padBottom(20);
+        mainTable.row();
 
-        table.add(algorithmParamsTable).colspan(2);
-        table.row();
+        // 랜덤 시드 입력 필드
+        Label seedLabel = new Label("Random Seed:", skin);
+        seedTextField = new TextField("", skin);
+        seedOptionalLabel = new Label("Seed is Optional", skin);
+        seedOptionalLabel.setColor(Color.GRAY); // 회색 글씨 설정
 
-        table.add(confirmButton).width(150).height(50).pad(10);
-        table.add(backButton).width(150).height(50).pad(10);
-        table.row();
+        Table seedTable = new Table();
+        seedTable.add(seedLabel).left().padRight(5);
+        seedTable.add(seedTextField).width(200).padRight(10);
+        seedTable.add(seedOptionalLabel).left();
+        mainTable.add(seedTable).colspan(2).center().padBottom(20);
+        mainTable.row();
+
+        // 알고리즘별 파라미터 테이블
+        algorithmParamsTable = new Table();
+        updateAlgorithmParamsTable(algorithms[algorithmIndex]);
+        mainTable.add(algorithmParamsTable).colspan(2).fillX().padBottom(20);
+        mainTable.row();
+
+        // 확인 및 취소 버튼 생성
+        TextButton confirmButton = new TextButton("Create", skin);
+        TextButton backButton = new TextButton("Back", skin);
+
+        // 버튼들을 한 행에 배치
+        Table buttonTable = new Table();
+        buttonTable.add(confirmButton).width(150).height(50).padRight(20);
+        buttonTable.add(backButton).width(150).height(50);
+        mainTable.add(buttonTable).colspan(2).center();
+        mainTable.row();
 
         // 이벤트 리스너 설정
         setListeners(confirmButton, backButton);
     }
 
     private void setListeners(TextButton confirmButton, TextButton backButton) {
-        // 알고리즘 선택 변경 시 파라미터 테이블 및 맵 사이즈 라벨 업데이트
-        algorithmSelectBox.addListener(new ChangeListener() {
+        // 알고리즘 선택 버튼 클릭 시
+        algorithmButton.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                String selectedAlgorithm = algorithmSelectBox.getSelected();
-                updateAlgorithmParamsTable(selectedAlgorithm);
-                updateMapSizeLabels(selectedAlgorithm); // 맵 사이즈 라벨 업데이트
+            public void clicked(InputEvent event, float x, float y) {
+                // 알고리즘 인덱스 변경
+                algorithmIndex = (algorithmIndex + 1) % algorithms.length;
+                // 버튼 텍스트 업데이트
+                algorithmButton.setText("Algorithm: " + algorithms[algorithmIndex]);
+                // 알고리즘별 파라미터 테이블 업데이트
+                updateAlgorithmParamsTable(algorithms[algorithmIndex]);
+                // 맵 사이즈 라벨 업데이트
+                updateMapSizeLabels(algorithms[algorithmIndex]);
             }
         });
 
@@ -160,7 +212,7 @@ public class SelectMap extends AbstractScreen {
                     int mapHeight = Integer.parseInt(heightTextField.getText());
                     long seed = seedTextField.getText().isEmpty() ? new Random().nextLong()
                             : Long.parseLong(seedTextField.getText());
-                    String selectedAlgorithm = algorithmSelectBox.getSelected();
+                    String selectedAlgorithm = algorithms[algorithmIndex];
 
                     // 타일 테마 선택
                     String selectedTileTheme = tileThemeGroup.getChecked().getText().toString();
@@ -196,7 +248,6 @@ public class SelectMap extends AbstractScreen {
                         }
 
                         // 맵 생성 화면으로 이동
-                        // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
                                 roomMinLen, roomMaxLen, roomGenAttempt, removeDeadend, selectedTileTheme));
                     }
@@ -206,6 +257,7 @@ public class SelectMap extends AbstractScreen {
                 }
             }
         });
+
         // 뒤로가기 버튼 클릭 시 메인 메뉴로 돌아감
         backButton.addListener(new ClickListener() {
             @Override
@@ -225,65 +277,65 @@ public class SelectMap extends AbstractScreen {
 
     private void updateAlgorithmParamsTable(String algorithm) {
         algorithmParamsTable.clear(); // 기존의 파라미터 필드 제거
+        algorithmParamsTable.defaults().expandX().fillX().space(5);
 
         if (algorithm.equals("Cellular Automata")) {
             // Cellular Automata 파라미터 생성
-            // 채우기 확률 입력 슬라이더
             Label fillProbLabel = new Label("Fill Probability (0.4 ~ 0.6):", skin);
             fillProbSlider = new Slider(0.4f, 0.6f, 0.01f, false, skin);
-            fillProbSlider.setValue(0.45f); // 초기 값 설정
+            fillProbSlider.setValue(0.45f);
 
             Label fillProbValueLabel = new Label(String.format("%.2f", fillProbSlider.getValue()), skin);
 
-            // 슬라이더 리스너 추가
             fillProbSlider.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     fillProbValueLabel.setText(String.format("%.2f", fillProbSlider.getValue()));
                 }
             });
-            // end of fillProbSlider
 
-            isConnectedCheckBox = new CheckBox("Connect Rooms", skin);
+            isConnectedCheckBox = new CheckBox("Connect Rooms", customCheckBoxStyle);
             isConnectedCheckBox.setChecked(true);
 
-            // 테이블에 추가
-            algorithmParamsTable.add(fillProbLabel).pad(5);
-            algorithmParamsTable.add(fillProbSlider).width(200).pad(5);
-            algorithmParamsTable.add(fillProbValueLabel).pad(5);
+            // 파라미터 테이블에 추가
+            algorithmParamsTable.add(fillProbLabel).left();
+            Table sliderTable = new Table();
+            sliderTable.add(fillProbSlider).width(150);
+            sliderTable.add(fillProbValueLabel).width(50).padLeft(10);
+            algorithmParamsTable.add(sliderTable).right();
             algorithmParamsTable.row();
 
-            algorithmParamsTable.add(isConnectedCheckBox).colspan(2).pad(5);
+            algorithmParamsTable.add(isConnectedCheckBox).left().colspan(2);
             algorithmParamsTable.row();
 
         } else if (algorithm.equals("Rooms and Mazes")) {
             // Rooms and Mazes 파라미터 생성
-            Label roomMinLenLabel = new Label("Room Min Length (Odd Number):", skin); // 홀수임을 표시
+            Label roomMinLenLabel = new Label("Room Min Length (Odd):", skin);
             roomMinLenTextField = new TextField("5", skin);
 
-            Label roomMaxLenLabel = new Label("Room Max Length (Odd Number):", skin); // 홀수임을 표시
+            Label roomMaxLenLabel = new Label("Room Max Length (Odd):", skin);
             roomMaxLenTextField = new TextField("11", skin);
 
             Label roomGenAttemptLabel = new Label("Room Generation Attempts:", skin);
             roomGenAttemptTextField = new TextField("50", skin);
 
-            removeDeadendCheckBox = new CheckBox("Remove Dead Ends", skin);
+            removeDeadendCheckBox = new CheckBox("Remove Dead Ends", customCheckBoxStyle);
             removeDeadendCheckBox.setChecked(false);
 
-            // 테이블에 추가
-            algorithmParamsTable.add(roomMinLenLabel).pad(5);
-            algorithmParamsTable.add(roomMinLenTextField).width(200).pad(5);
+            // 파라미터 테이블에 추가
+            algorithmParamsTable.add(roomMinLenLabel).left();
+            algorithmParamsTable.add(roomMinLenTextField).right();
             algorithmParamsTable.row();
 
-            algorithmParamsTable.add(roomMaxLenLabel).pad(5);
-            algorithmParamsTable.add(roomMaxLenTextField).width(200).pad(5);
+            algorithmParamsTable.add(roomMaxLenLabel).left();
+            algorithmParamsTable.add(roomMaxLenTextField).right();
             algorithmParamsTable.row();
 
-            algorithmParamsTable.add(roomGenAttemptLabel).pad(5);
-            algorithmParamsTable.add(roomGenAttemptTextField).width(200).pad(5);
+            algorithmParamsTable.add(roomGenAttemptLabel).left();
+            algorithmParamsTable.add(roomGenAttemptTextField).right();
             algorithmParamsTable.row();
 
-            algorithmParamsTable.add(removeDeadendCheckBox).colspan(2).pad(5);
+            algorithmParamsTable.add(removeDeadendCheckBox).left().colspan(2);
             algorithmParamsTable.row();
         }
     }
@@ -291,11 +343,9 @@ public class SelectMap extends AbstractScreen {
     // 맵 사이즈 라벨을 업데이트하는 메서드 추가
     private void updateMapSizeLabels(String algorithm) {
         if (algorithm.equals("Rooms and Mazes")) {
-            // Rooms and Mazes 선택 시 라벨에 "(Odd Number)" 추가
-            widthLabel.setText("Map Width Size (Odd Number):");
-            heightLabel.setText("Map Height Size (Odd Number):");
+            widthLabel.setText("Map Width Size (Odd):");
+            heightLabel.setText("Map Height Size (Odd):");
         } else {
-            // 다른 알고리즘 선택 시 원래 라벨로 복원
             widthLabel.setText("Map Width Size:");
             heightLabel.setText("Map Height Size:");
         }
@@ -312,6 +362,5 @@ public class SelectMap extends AbstractScreen {
     @Override
     public void dispose() {
         super.dispose();
-        // 필요한 자원 해제 작업 수행
     }
 }

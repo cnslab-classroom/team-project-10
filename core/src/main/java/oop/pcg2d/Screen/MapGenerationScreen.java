@@ -13,7 +13,6 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -24,9 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 import oop.pcg2d.generator.CellularAutomata;
 import oop.pcg2d.generator.RoomsAndMazes;
@@ -206,10 +203,50 @@ public class MapGenerationScreen extends AbstractScreen {
 
         // 카메라의 초기 위치를 맵 중앙으로 설정
         // 카메라의 위치를 맵의 중앙으로 설정
+        // 맵의 실제 크기 계산
         float tileSize = painter.getTileSize();
-        float mapWidth = mapData[0].length * tileSize;
-        float mapHeight = mapData.length * tileSize;
-        camera.position.set(mapWidth / 2, mapHeight / 2, 0);
+        float mapWidthInPixels = mapData[0].length * tileSize;
+        float mapHeightInPixels = mapData.length * tileSize;
+
+        // 카메라의 줌 레벨 계산
+        float viewportWidth = camera.viewportWidth;
+        float viewportHeight = camera.viewportHeight;
+
+        float zoomX = mapWidthInPixels / viewportWidth;
+        float zoomY = mapHeightInPixels / viewportHeight;
+
+        float zoom = Math.max(zoomX, zoomY);
+
+        // 약간의 여백을 주기 위해 줌 레벨을 조금 더 키움
+        zoom *= 1.1f; // 필요에 따라 조정 가능
+
+        camera.zoom = zoom;
+
+        // 카메라의 위치를 맵의 중앙으로 설정
+        camera.position.set(mapWidthInPixels / 2, mapHeightInPixels / 2, 0);
+        camera.update();
+    }
+
+    private void updateCamera() {
+        float tileSize = painter.getTileSize();
+        float mapWidthInPixels = mapData[0].length * tileSize;
+        float mapHeightInPixels = mapData.length * tileSize;
+
+        float viewportWidth = camera.viewportWidth;
+        float viewportHeight = camera.viewportHeight;
+
+        float zoomX = mapWidthInPixels / viewportWidth;
+        float zoomY = mapHeightInPixels / viewportHeight;
+
+        float zoom = Math.max(zoomX, zoomY);
+
+        // 약간의 여백을 주기 위해 줌 레벨을 조금 더 키움
+        zoom *= 1.1f; // 필요에 따라 조정 가능
+
+        camera.zoom = zoom;
+
+        // 카메라의 위치를 맵의 중앙으로 설정
+        camera.position.set(mapWidthInPixels / 2, mapHeightInPixels / 2, 0);
         camera.update();
     }
 
@@ -222,6 +259,9 @@ public class MapGenerationScreen extends AbstractScreen {
                     removeDeadend);
             mapData = rm.generate();
         }
+        
+        // 맵이 재생성되었으므로 카메라 업데이트
+        updateCamera();
     }
 
     private void newRandomSeed() {
@@ -272,7 +312,6 @@ public class MapGenerationScreen extends AbstractScreen {
                 saveAsPng();
             }
         });
-        
 
         // 테이블을 여러 개로 나누어서 요소를 배치했습니다!
         // 상단 왼쪽 테이블 생성
@@ -285,15 +324,15 @@ public class MapGenerationScreen extends AbstractScreen {
         Table topRightTable = new Table();
         topRightTable.top().right().pad(10);
         topRightTable.setFillParent(true);
-        topRightTable.add(regenButton).width(120).height(50).space(10);
-        topRightTable.add(backButton).width(120).height(50).space(10);
+        topRightTable.add(regenButton).height(50).space(10);
+        topRightTable.add(backButton).height(50).space(10);
 
         // 하단 오른쪽 테이블 생성
         Table bottomRightTable = new Table();
         bottomRightTable.bottom().right().pad(10);
         bottomRightTable.setFillParent(true);
-        bottomRightTable.add(saveTxtButton).width(120).height(50).space(10);
-        bottomRightTable.add(savePngButton).width(120).height(50).space(10);
+        bottomRightTable.add(saveTxtButton).height(50).space(10);
+        bottomRightTable.add(savePngButton).height(50).space(10);
 
         // 스테이지에 테이블 추가
         uiStage.addActor(topLeftTable);
@@ -374,8 +413,14 @@ public class MapGenerationScreen extends AbstractScreen {
         // 화면을 지움
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        String seedString = String.valueOf(this.seed);
+        int maxSeedDisplayLength = 8;
+        if (seedString.length() > maxSeedDisplayLength) {
+            seedString = seedString.substring(0, maxSeedDisplayLength) + "...";
+        }
+
         // 시드 라벨 업데이트
-        seedLabel.setText("Current Seed: " + String.valueOf(this.seed));
+        seedLabel.setText("Current Seed: " + seedString);
 
         // 카메라 업데이트
         camera.update();
@@ -402,7 +447,8 @@ public class MapGenerationScreen extends AbstractScreen {
         // 카메라의 뷰포트 업데이트
         camera.viewportWidth = width;
         camera.viewportHeight = height;
-        camera.update();
+        
+        updateCamera();
 
         // 스테이지의 뷰포트 업데이트
         stage.getViewport().update(width, height, true);
@@ -463,8 +509,7 @@ public class MapGenerationScreen extends AbstractScreen {
         String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
         try {
             UIManager.setLookAndFeel(lookAndFeel);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Gdx.app.log(App.LOG, "Error: " + e.getMessage());
         }
         JFrame window = new JFrame();
@@ -476,15 +521,14 @@ public class MapGenerationScreen extends AbstractScreen {
         // 선택한 디렉토리에 새로운 파일 생성
         int result = saveFileChooser.showSaveDialog(window);
         if (result == JFileChooser.APPROVE_OPTION) {
-		    File selectedDirectory = saveFileChooser.getSelectedFile();
+            File selectedDirectory = saveFileChooser.getSelectedFile();
             String timeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HHmmss"));
 
             // 현재 시간을 이름으로 가진 새로운 .txt 파일 생성
             File saveFile = new File(selectedDirectory.getAbsolutePath() + File.separator + timeNow + ".txt");
             try {
                 saveFile.createNewFile();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Gdx.app.log(App.LOG, "Error: " + e.getMessage());
                 JOptionPane.showMessageDialog(window, "Error: " + e.getMessage());
             }
@@ -499,8 +543,7 @@ public class MapGenerationScreen extends AbstractScreen {
                     saveFileWriter.write("\n");
                 }
                 saveFileWriter.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Gdx.app.log(App.LOG, "Error: " + e.getMessage());
             }
         }
@@ -514,16 +557,17 @@ public class MapGenerationScreen extends AbstractScreen {
         } catch (Exception e) {
             Gdx.app.log(App.LOG, "Error setting Look and Feel: " + e.getMessage());
         }
-    
+
         // 파일 선택 창 생성
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose a location to save the PNG file");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    
+
         // 현재 시간을 이름으로 가진 새로운 .png 파일 생성
-        String defaultFileName = "map_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss")) + ".png";
+        String defaultFileName = "map_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss"))
+                + ".png";
         fileChooser.setSelectedFile(new File(defaultFileName));
-    
+
         // 사용자 입력 처리
         int userSelection = fileChooser.showSaveDialog(null);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -537,34 +581,34 @@ public class MapGenerationScreen extends AbstractScreen {
             int highResWidth = mapWidth * scaleFactor;
             int highResHeight = mapHeight * scaleFactor;
             FrameBuffer frameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, highResWidth, highResHeight, false);
-    
+
             OrthographicCamera highResCamera = new OrthographicCamera();
             float tileSize = painter.getTileSize();
             float worldWidth = mapWidth * tileSize;
             float worldHeight = mapHeight * tileSize;
-    
+
             highResCamera.setToOrtho(false, worldWidth, worldHeight);
             highResCamera.position.set(worldWidth / 2, worldHeight / 2, 0);
             highResCamera.update();
-    
+
             frameBuffer.begin();
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-    
+
             batch.setProjectionMatrix(highResCamera.combined);
             batch.begin();
             painter.draw(mapData, batch, tileTextures, algorithm);
             batch.end();
-    
+
             Pixmap pixmap = Pixmap.createFromFrameBuffer(0, 0, highResWidth, highResHeight);
             frameBuffer.end();
-    
+
             // Pixmap 반전
             Pixmap flippedPixmap = flipPixmap(pixmap);
-    
+
             // Pixmap을 PNG로 저장
             FileHandle fileHandle = Gdx.files.absolute(savePath);
             PixmapIO.writePNG(fileHandle, flippedPixmap);
-    
+
             // 리소스 해제
             pixmap.dispose();
             flippedPixmap.dispose();

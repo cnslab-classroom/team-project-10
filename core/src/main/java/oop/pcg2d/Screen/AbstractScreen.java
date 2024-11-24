@@ -33,7 +33,7 @@ public abstract class AbstractScreen implements Screen {
         this.stage = new Stage(new ScreenViewport());
 
         // uiskin.json 파일을 읽어와서 스킨을 생성
-        this.skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        this.skin = new Skin(Gdx.files.internal("ui/craftSkin/craftacular-ui.json"));
     }
 
     protected String getName(){
