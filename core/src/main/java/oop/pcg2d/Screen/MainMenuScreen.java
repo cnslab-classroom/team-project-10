@@ -56,11 +56,11 @@ public class MainMenuScreen extends AbstractScreen {
         TextButton button3 = new TextButton("Exit", skin);
 
         // 버튼을 테이블에 추가
-        table.add(button1).width(200).height(50).pad(10).colspan(2).center();
+        table.add(button1).width(600).height(65).pad(10).colspan(2).center();
         table.row(); // 다음 행으로 이동
-        table.add(button2).width(200).height(50).pad(10).colspan(2).center();
+        table.add(button2).width(600).height(65).pad(10).colspan(2).center();
         table.row();
-        table.add(button3).width(200).height(50).pad(10).colspan(2).center();
+        table.add(button3).width(600).height(65).pad(10).colspan(2).center();
 
         // "Start" 버튼에 클릭 이벤트 리스너 추가
         button1.addListener(new ClickListener() {

@@ -6,18 +6,20 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 
 import oop.pcg2d.App;
 
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
+import com.badlogic.gdx.utils.Align;
 
 import java.util.Random;
 
 public class SelectMap extends AbstractScreen {
 
+    // 알고리즘 선택 버튼 관련 변수들
     private String[] algorithms = { "Cellular Automata", "Rooms and Mazes" };
     private int algorithmIndex = 0;
     private TextButton algorithmButton;
@@ -36,12 +38,14 @@ public class SelectMap extends AbstractScreen {
 
     // 알고리즘별 파라미터
     private Slider fillProbSlider;
-    private CheckBox isConnectedCheckBox;
+    private TextButton connectRoomsButton;
+    private boolean isConnected = true; // 기본값을 true로 설정
 
     private TextField roomMinLenTextField;
     private TextField roomMaxLenTextField;
-    private TextField roomGenAttemptTextField;
-    private CheckBox removeDeadendCheckBox;
+    private Slider roomGenAttemptSlider;
+    private TextButton removeDeadendButton;
+    private boolean removeDeadend = false; // 기본값 설정
 
     // 알고리즘별 파라미터를 담는 테이블
     private Table algorithmParamsTable;
@@ -49,9 +53,7 @@ public class SelectMap extends AbstractScreen {
     // 배경 이미지 텍스처
     private Image background;
 
-    // 공통 체크박스 스타일
-    private CheckBox.CheckBoxStyle customCheckBoxStyle;
-
+    // 생성자
     public SelectMap(App game) {
         super(game);
         initUI();
@@ -82,20 +84,20 @@ public class SelectMap extends AbstractScreen {
         mainTable.row();
 
         // 타일 테마 선택 부분
-        Label tileThemeLabel = new Label("Select a Tile Theme:", skin);
+        Label tileThemeLabel = new Label("<Select a Tile Theme>", skin);
         tileThemeGroup = new ButtonGroup<>();
         tileThemeGroup.setMaxCheckCount(1);
         tileThemeGroup.setMinCheckCount(1);
         tileThemeGroup.setUncheckLast(true);
 
-        // 타일 테마 체크박스 스타일 생성
+        // 타일 테마 체크박스 스타일 (갑옷 아이콘)생성
         CheckBox.CheckBoxStyle tileThemeCheckBoxStyle = new CheckBox.CheckBoxStyle();
         tileThemeCheckBoxStyle.checkboxOn = skin.getDrawable("armor");
         tileThemeCheckBoxStyle.checkboxOff = skin.getDrawable("armor-bg");
         tileThemeCheckBoxStyle.font = skin.getFont("font");
 
-        // 드로어블 크기 조정
-        float drawableScale = 2f; // 원하는 크기 배율
+        // (갑옷 아이콘) 드로어블 크기 조정
+        float drawableScale = 2.5f; // 크기 배율 조절
         tileThemeCheckBoxStyle.checkboxOn.setMinWidth(tileThemeCheckBoxStyle.checkboxOn.getMinWidth() * drawableScale);
         tileThemeCheckBoxStyle.checkboxOn
                 .setMinHeight(tileThemeCheckBoxStyle.checkboxOn.getMinHeight() * drawableScale);
@@ -104,31 +106,23 @@ public class SelectMap extends AbstractScreen {
         tileThemeCheckBoxStyle.checkboxOff
                 .setMinHeight(tileThemeCheckBoxStyle.checkboxOff.getMinHeight() * drawableScale);
 
-        // 공통 체크박스 스타일 생성
-        customCheckBoxStyle = new CheckBox.CheckBoxStyle();
-        customCheckBoxStyle.checkboxOn = skin.getDrawable("heart");
-        customCheckBoxStyle.checkboxOff = skin.getDrawable("heart-bg");
-        customCheckBoxStyle.font = skin.getFont("font");
-
-        // 드로어블 크기 조정
-        customCheckBoxStyle.checkboxOn.setMinWidth(customCheckBoxStyle.checkboxOn.getMinWidth() * drawableScale);
-        customCheckBoxStyle.checkboxOn.setMinHeight(customCheckBoxStyle.checkboxOn.getMinHeight() * drawableScale);
-        customCheckBoxStyle.checkboxOff.setMinWidth(customCheckBoxStyle.checkboxOff.getMinWidth() * drawableScale);
-        customCheckBoxStyle.checkboxOff.setMinHeight(customCheckBoxStyle.checkboxOff.getMinHeight() * drawableScale);
-
         Table tileThemeTable = new Table();
         for (String theme : tileThemes) {
             CheckBox checkBox = new CheckBox(theme, tileThemeCheckBoxStyle);
             tileThemeGroup.add(checkBox);
             tileThemeTable.add(checkBox).left().padRight(10);
-            // tileThemeTable.row();
         }
         tileThemeGroup.setChecked("Grass");
 
         // 타일 테마 선택 추가
-        mainTable.add(tileThemeLabel).left().colspan(2).padBottom(10);
+        mainTable.add(tileThemeLabel).center().colspan(2).padBottom(10);
         mainTable.row();
         mainTable.add(tileThemeTable).colspan(2).center().padBottom(20);
+        mainTable.row();
+
+        // 알고리즘 선택 버튼
+        algorithmButton = new TextButton("Algorithm: " + algorithms[algorithmIndex], skin);
+        mainTable.add(algorithmButton).colspan(2).center().padBottom(20);
         mainTable.row();
 
         // 공통 파라미터 입력 필드
@@ -145,11 +139,6 @@ public class SelectMap extends AbstractScreen {
         sizeTable.add(heightLabel).left().padRight(5);
         sizeTable.add(heightTextField).width(100);
         mainTable.add(sizeTable).colspan(2).center().padBottom(20);
-        mainTable.row();
-
-        // 알고리즘 선택 버튼
-        algorithmButton = new TextButton("Algorithm: " + algorithms[algorithmIndex], skin);
-        mainTable.add(algorithmButton).colspan(2).center().padBottom(20);
         mainTable.row();
 
         // 랜덤 시드 입력 필드
@@ -171,15 +160,23 @@ public class SelectMap extends AbstractScreen {
         mainTable.add(algorithmParamsTable).colspan(2).fillX().padBottom(20);
         mainTable.row();
 
+        // 버튼들의 크기를 동일하게 설정
+        float buttonWidth = algorithmButton.getWidth();
+        float buttonHeight = algorithmButton.getHeight();
+
         // 확인 및 취소 버튼 생성
         TextButton confirmButton = new TextButton("Create", skin);
         TextButton backButton = new TextButton("Back", skin);
 
+        // 버튼들의 크기 설정
+        confirmButton.setSize(buttonWidth, buttonHeight);
+        backButton.setSize(buttonWidth, buttonHeight);
+
         // 버튼들을 한 행에 배치
         Table buttonTable = new Table();
-        buttonTable.add(confirmButton).width(150).height(50).padRight(20);
-        buttonTable.add(backButton).width(150).height(50);
-        mainTable.add(buttonTable).colspan(2).center();
+        buttonTable.add(confirmButton).width(buttonWidth).height(buttonHeight).padRight(20);
+        buttonTable.add(backButton).width(buttonWidth).height(buttonHeight);
+        mainTable.add(buttonTable).bottom().center();
         mainTable.row();
 
         // 이벤트 리스너 설정
@@ -221,7 +218,7 @@ public class SelectMap extends AbstractScreen {
                     if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
                             // 오류 메시지 표시
-                            showErrorDialog("Map size must be odd numbers for Rooms and Mazes algorithm.");
+                            showErrorDialog("Map size must be odd numbers for Rooms and Mazes.");
                             return;
                         }
                     }
@@ -229,7 +226,6 @@ public class SelectMap extends AbstractScreen {
                     // 알고리즘별 파라미터 가져오기
                     if (selectedAlgorithm.equals("Cellular Automata")) {
                         double fillProb = fillProbSlider.getValue();
-                        boolean isConnected = isConnectedCheckBox.isChecked();
 
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
@@ -237,9 +233,8 @@ public class SelectMap extends AbstractScreen {
                     } else if (selectedAlgorithm.equals("Rooms and Mazes")) {
                         int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
                         int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
-                        int roomGenAttempt = Integer.parseInt(roomGenAttemptTextField.getText());
-                        boolean removeDeadend = removeDeadendCheckBox.isChecked();
-
+                        int roomGenAttempt = (int)(roomGenAttemptSlider.getValue());
+                
                         // 방 최소/최대 길이가 홀수여야 함
                         if (roomMinLen % 2 == 0 || roomMaxLen % 2 == 0) {
                             // 오류 메시지 표시
@@ -281,48 +276,76 @@ public class SelectMap extends AbstractScreen {
 
         if (algorithm.equals("Cellular Automata")) {
             // Cellular Automata 파라미터 생성
-            Label fillProbLabel = new Label("Fill Probability (0.4 ~ 0.6):", skin);
+
+            // 버튼과 슬라이더의 크기 설정
+            float buttonWidth = algorithmButton.getWidth();
+            float buttonHeight = algorithmButton.getHeight();
+
             fillProbSlider = new Slider(0.4f, 0.6f, 0.01f, false, skin);
             fillProbSlider.setValue(0.45f);
+            fillProbSlider.setSize(buttonWidth, buttonHeight);
 
-            Label fillProbValueLabel = new Label(String.format("%.2f", fillProbSlider.getValue()), skin);
+            // 슬라이더 내부에 표시할 레이블 생성
+            final Label fillProbLabel = new Label("Fill Probability", skin);
+            fillProbLabel.setSize(buttonWidth, buttonHeight);
+            fillProbLabel.setAlignment(Align.center);
+            fillProbLabel.setTouchable(Touchable.disabled); // 레이블이 입력을 받지 않도록 설정
 
-            fillProbSlider.addListener(new ChangeListener() {
+            // 슬라이더와 레이블을 포함하는 테이블 생성
+            Table sliderTable = new Table();
+            sliderTable.addActor(fillProbSlider);
+            sliderTable.addActor(fillProbLabel);
+            sliderTable.setSize(buttonWidth, buttonHeight);
+
+            // 슬라이더에 입력 리스너 추가
+            fillProbSlider.addListener(new InputListener() {
                 @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    fillProbValueLabel.setText(String.format("%.2f", fillProbSlider.getValue()));
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    updateFillProbLabel();
+                    return true;
+                }
+
+                @Override
+                public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                    updateFillProbLabel();
+                }
+
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    fillProbLabel.setText("Fill Probability");
+                }
+
+                private void updateFillProbLabel() {
+                    fillProbLabel.setText(String.format("Fill Probability : %.2f", fillProbSlider.getValue()));
                 }
             });
 
-            isConnectedCheckBox = new CheckBox("Connect Rooms", customCheckBoxStyle);
-            isConnectedCheckBox.setChecked(true);
+            // Connect Rooms 버튼 생성
+            connectRoomsButton = new TextButton("Connect Rooms: On", skin);
+            connectRoomsButton.setSize(buttonWidth, buttonHeight);
+            connectRoomsButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    isConnected = !isConnected;
+                    connectRoomsButton.setText("Connect Rooms: " + (isConnected ? "On" : "Off"));
+                }
+            });
 
-            // 파라미터 테이블에 추가
-            algorithmParamsTable.add(fillProbLabel).left();
-            Table sliderTable = new Table();
-            sliderTable.add(fillProbSlider).width(150);
-            sliderTable.add(fillProbValueLabel).width(50).padLeft(10);
-            algorithmParamsTable.add(sliderTable).right();
-            algorithmParamsTable.row();
-
-            algorithmParamsTable.add(isConnectedCheckBox).left().colspan(2);
+            // 파라미터 테이블에 슬라이더와 버튼 추가
+            algorithmParamsTable.add(sliderTable).width(buttonWidth).height(buttonHeight).left().padRight(20);
+            algorithmParamsTable.add(connectRoomsButton).width(buttonWidth).height(buttonHeight).right();
             algorithmParamsTable.row();
 
         } else if (algorithm.equals("Rooms and Mazes")) {
             // Rooms and Mazes 파라미터 생성
+            // 방 최소 및 최대 길이 입력 필드 생성
             Label roomMinLenLabel = new Label("Room Min Length (Odd):", skin);
             roomMinLenTextField = new TextField("5", skin);
 
             Label roomMaxLenLabel = new Label("Room Max Length (Odd):", skin);
             roomMaxLenTextField = new TextField("11", skin);
 
-            Label roomGenAttemptLabel = new Label("Room Generation Attempts:", skin);
-            roomGenAttemptTextField = new TextField("50", skin);
-
-            removeDeadendCheckBox = new CheckBox("Remove Dead Ends", customCheckBoxStyle);
-            removeDeadendCheckBox.setChecked(false);
-
-            // 파라미터 테이블에 추가
+            // 방 최소 최대 길이 파라미터 테이블에 추가
             algorithmParamsTable.add(roomMinLenLabel).left();
             algorithmParamsTable.add(roomMinLenTextField).right();
             algorithmParamsTable.row();
@@ -330,13 +353,69 @@ public class SelectMap extends AbstractScreen {
             algorithmParamsTable.add(roomMaxLenLabel).left();
             algorithmParamsTable.add(roomMaxLenTextField).right();
             algorithmParamsTable.row();
+            // End of 방 최소 최대 길이 파라미터
 
-            algorithmParamsTable.add(roomGenAttemptLabel).left();
-            algorithmParamsTable.add(roomGenAttemptTextField).right();
+            // 버튼과 슬라이더의 크기 설정
+            float buttonWidth = algorithmButton.getWidth();
+            float buttonHeight = algorithmButton.getHeight();
+
+            // Start of 방 생성 시도 슬라이더 생성
+            // Room Generation Attempts 슬라이더 생성
+            roomGenAttemptSlider = new Slider(1, 100, 1, false, skin);
+            roomGenAttemptSlider.setValue(50); // 기본값 설정
+            roomGenAttemptSlider.setSize(buttonWidth, buttonHeight);
+
+            // 슬라이더 내부에 표시할 레이블 생성
+            final Label roomGenAttemptLabel = new Label("Room Generation Attempts", skin);
+            roomGenAttemptLabel.setSize(buttonWidth, buttonHeight);
+            roomGenAttemptLabel.setAlignment(Align.center);
+            roomGenAttemptLabel.setTouchable(Touchable.disabled);
+
+            // 슬라이더와 레이블을 포함하는 테이블 생성
+            Table sliderTable = new Table();
+            sliderTable.addActor(roomGenAttemptSlider);
+            sliderTable.addActor(roomGenAttemptLabel);
+            sliderTable.setSize(buttonWidth, buttonHeight);
+
+            // 슬라이더에 입력 리스너 추가
+            roomGenAttemptSlider.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    updateRoomGenAttemptLabel();
+                    return true;
+                }
+
+                @Override
+                public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                    updateRoomGenAttemptLabel();
+                }
+
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    roomGenAttemptLabel.setText("Room Generation Attempts");
+                }
+
+                private void updateRoomGenAttemptLabel() {
+                    roomGenAttemptLabel.setText(String.format("Attempts: %d", (int) roomGenAttemptSlider.getValue()));
+                }
+            }); // End of 방 생성 시도 슬라이더 리스너
+
+            // Remove Dead Ends 버튼 생성
+            removeDeadendButton = new TextButton("Remove Dead Ends: Off", skin);
+            removeDeadendButton.setSize(buttonWidth, buttonHeight);
+            removeDeadendButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    removeDeadend = !removeDeadend;
+                    removeDeadendButton.setText("Remove Dead Ends: " + (removeDeadend ? "On" : "Off"));
+                }
+            });
+
+            // 파라미터 테이블에 슬라이더와 버튼 추가
+            algorithmParamsTable.add(sliderTable).width(buttonWidth).height(buttonHeight).left().padRight(20);
+            algorithmParamsTable.add(removeDeadendButton).width(buttonWidth).height(buttonHeight).right();
             algorithmParamsTable.row();
 
-            algorithmParamsTable.add(removeDeadendCheckBox).left().colspan(2);
-            algorithmParamsTable.row();
         }
     }
 
@@ -353,8 +432,9 @@ public class SelectMap extends AbstractScreen {
 
     // 오류 메시지를 표시하는 메서드
     private void showErrorDialog(String message) {
-        Dialog dialog = new Dialog("Error", skin);
+        Dialog dialog = new Dialog("", skin);
         dialog.text(message);
+        dialog.setColor(Color.RED);
         dialog.button("OK");
         dialog.show(stage);
     }
