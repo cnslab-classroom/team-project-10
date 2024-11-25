@@ -45,16 +45,17 @@ public class InformationScreen extends AbstractScreen {
         mainTable.row();
 
         // 정보 텍스트 생성 (예시 문장)
-        String infoText = "This program was created by Kwangwoon University students.\n\n"
-                + "The purpose of the program is to learn Java in an object-oriented programming course...\n\n"
-                + "Creators:\n"
-                + "- Jeonhyeongyu\n"
-                + "- Kimjunsik\n"
-                + "- Kimjinwook\n"
-                + "- Moongijoo\n\n"
-                + "Special Features:\n"
-                + "- Randomized map generation\n"
-                + "- Supports various themes\n"
+        String infoText = "Program made for Kwangwoon University OOP course in 2024. "
+                + "Made by 4 students in 6 weeks.\n\n"
+                + "Developers:\n"
+                + "- Hyeongyu Jeon\n"
+                + "- Junsik Kim\n"
+                + "- Jinwook Kim\n"
+                + "- Gijoo Moon\n\n"
+                + "Program Features:\n"
+                + "- Randomized procedural 2d map generation\n"
+                + "- Various map themes\n"
+                + "- Exporting via .txt and .png\n"
                 + "- User-friendly interface\n\n"
                 + "Thank you.";
 
