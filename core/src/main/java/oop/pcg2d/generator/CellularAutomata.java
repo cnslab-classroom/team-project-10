@@ -1,5 +1,6 @@
 package oop.pcg2d.generator;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -40,8 +41,8 @@ public class CellularAutomata {
     }
 
     public int[][] generate() {
+        fillBoundary();
         this.mapData = randomFill();
-
         for (int i = 0; i < SMOOTH_ITERATION_NUM; i++) {
             this.mapData = smoothing();
         }
@@ -52,31 +53,62 @@ public class CellularAutomata {
         return mapData;
     }
 
+    private int[][] copyMap() {
+        int[][] result = new int[this.MAPHEIGHT][this.MAPWIDTH];
+        for (int y = 1; y < MAPHEIGHT - 1; y++) {
+            for (int x = 1; x < MAPWIDTH - 1; x++) {
+                result[y][x] = this.mapData[y][x];
+            }
+        }
+        return result;
+    }
+
     private boolean isValidCoord(int x, int y) {
         return (x >= 0 && x < this.MAPWIDTH && y >= 0 && y < this.MAPHEIGHT);
     }
 
+    private void fillBoundary() {
+        // 맵의 가장자리를 벽으로 채움
+        Arrays.fill(this.mapData[0], WALL); // 위쪽 가장자리
+        Arrays.fill(this.mapData[0], WALL); // 아래쪽 가장자리
+        for (int y = 1; y < MAPHEIGHT - 1; y++) {
+            this.mapData[y][0] = WALL; // 왼쪽 가장자리
+            this.mapData[y][MAPWIDTH-1] = WALL; // 오른쪽 가장자리
+        }
+    }
+
     private int[][] randomFill() {
-        // FILL_PROBABILITY를 이용해 맵에 무작위 벽을 배치한 맵을 생성하고 반환
-        int randomRow;
-        int randomCol;
-        int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
-        int fillTileNum = (int)(MAPHEIGHT*MAPWIDTH * FILL_PROBABILITY);
-        for (;fillTileNum > 0;fillTileNum--) {
-            randomRow = rng.nextInt(MAPHEIGHT);
-            randomCol = rng.nextInt(MAPWIDTH);
-            if (newMapData[randomRow][randomCol] == 0)
-                newMapData[randomRow][randomCol] = 1;
+        // !! OLD CODE !!
+        // // FILL_PROBABILITY를 이용해 맵에 무작위 벽을 배치한 맵을 생성하고 반환
+        // int randomRow;
+        // int randomCol;
+        // int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
+        // int fillTileNum = (int)(MAPHEIGHT*MAPWIDTH * FILL_PROBABILITY);
+        // for (;fillTileNum > 0;fillTileNum--) {
+        //     randomRow = rng.nextInt(MAPHEIGHT);
+        //     randomCol = rng.nextInt(MAPWIDTH);
+        //     if (newMapData[randomRow][randomCol] == 0)
+        //         newMapData[randomRow][randomCol] = 1;
+        // }
+        // return newMapData;
+
+        int[][] newMapData = copyMap();
+        // 모든 맵의 타일을 순차적으로 탐색해 FILL_PROBABILITY 확률 만큼 벽을 배치 (맵 가장 자리는 )
+        for (int y = 1; y < MAPHEIGHT - 1; y++) {
+            for (int x = 1; x < MAPWIDTH - 1; x++) {
+                if (rng.nextDouble() < this.FILL_PROBABILITY)
+                    newMapData[y][x] = WALL;
+            }
         }
         return newMapData;
     }
 
     private int[][] smoothing() {
         // 맵의 모든 타일을 차례대로 순회해 cellular automata 규칙을 적용 시킨 새로운 맵을 생성하고 반환
-        int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
+        int[][] newMapData = copyMap();
     
-        for (int y = 0; y < MAPHEIGHT; y++) {
-            for (int x = 0; x < MAPWIDTH; x++) {
+        for (int y = 1; y < MAPHEIGHT - 1; y++) {
+            for (int x = 1; x < MAPWIDTH - 1; x++) {
                 int wallCount = countAdjacentWalls(x, y); // 주변 벽의 개수를 셈
                 // 주변 벽이 4개 이상이면 벽(1)으로 설정, 그렇지 않으면 빈 타일(0)로 설정
                 newMapData[y][x] = (wallCount >= BIRTH_THRESHOLD) ? WALL : EMPTY;
