@@ -10,7 +10,8 @@ import oop.pcg2d.utility.Pair;
 
 public class CellularAutomata {
     // cellular automata 규칙:
-    private static final int BIRTH_THRESHOLD = 4;      // 어떤 타일이 빈 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 있으면 이 타일은 벽 타일로 바뀜
+    private static final int BIRTH_THRESHOLD = 5;      // 어떤 타일이 빈 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 있으면 이 타일은 벽 타일로 바뀜
+    private static final int SURVIVAL_THRESHOLD = 4;      // 어떤 타일이 벽 타일이고, 주변 8칸 중에 이만큼 이상 벽 타일이 있으면 이 타일은 벽 타일을 유지
     private static final int SMOOTH_ITERATION_NUM = 5; // smoothing 메서드를 호출하는 횟수 (횟수가 많을수록 맵 지형이 매끄러워짐)
 
     // 타일 타입: 
@@ -48,6 +49,7 @@ public class CellularAutomata {
         }
         if (this.IS_CONNECTED) {
             rooms = identifyAllRooms();
+            fillTinyRooms();
             connectAllRooms();
         }
         return mapData;
@@ -55,8 +57,8 @@ public class CellularAutomata {
 
     private int[][] copyMap() {
         int[][] result = new int[this.MAPHEIGHT][this.MAPWIDTH];
-        for (int y = 1; y < MAPHEIGHT - 1; y++) {
-            for (int x = 1; x < MAPWIDTH - 1; x++) {
+        for (int y = 0; y < MAPHEIGHT; y++) {
+            for (int x = 0; x < MAPWIDTH; x++) {
                 result[y][x] = this.mapData[y][x];
             }
         }
@@ -70,33 +72,19 @@ public class CellularAutomata {
     private void fillBoundary() {
         // 맵의 가장자리를 벽으로 채움
         Arrays.fill(this.mapData[0], WALL); // 위쪽 가장자리
-        Arrays.fill(this.mapData[0], WALL); // 아래쪽 가장자리
-        for (int y = 1; y < MAPHEIGHT - 1; y++) {
+        Arrays.fill(this.mapData[MAPHEIGHT-1], WALL); // 아래쪽 가장자리
+        for (int y = 1; y < MAPHEIGHT; y++) {
             this.mapData[y][0] = WALL; // 왼쪽 가장자리
             this.mapData[y][MAPWIDTH-1] = WALL; // 오른쪽 가장자리
         }
     }
 
     private int[][] randomFill() {
-        // !! OLD CODE !!
-        // // FILL_PROBABILITY를 이용해 맵에 무작위 벽을 배치한 맵을 생성하고 반환
-        // int randomRow;
-        // int randomCol;
-        // int[][] newMapData = new int[this.MAPHEIGHT][this.MAPWIDTH];
-        // int fillTileNum = (int)(MAPHEIGHT*MAPWIDTH * FILL_PROBABILITY);
-        // for (;fillTileNum > 0;fillTileNum--) {
-        //     randomRow = rng.nextInt(MAPHEIGHT);
-        //     randomCol = rng.nextInt(MAPWIDTH);
-        //     if (newMapData[randomRow][randomCol] == 0)
-        //         newMapData[randomRow][randomCol] = 1;
-        // }
-        // return newMapData;
-
         int[][] newMapData = copyMap();
         // 모든 맵의 타일을 순차적으로 탐색해 FILL_PROBABILITY 확률 만큼 벽을 배치 (맵 가장 자리는 )
-        for (int y = 1; y < MAPHEIGHT - 1; y++) {
-            for (int x = 1; x < MAPWIDTH - 1; x++) {
-                if (rng.nextDouble() < this.FILL_PROBABILITY)
+        for (int y = 1; y <= MAPHEIGHT - 2; y++) {
+            for (int x = 1; x <= MAPWIDTH - 2; x++) {
+                if (rng.nextDouble() <= this.FILL_PROBABILITY)
                     newMapData[y][x] = WALL;
             }
         }
@@ -107,11 +95,12 @@ public class CellularAutomata {
         // 맵의 모든 타일을 차례대로 순회해 cellular automata 규칙을 적용 시킨 새로운 맵을 생성하고 반환
         int[][] newMapData = copyMap();
     
-        for (int y = 1; y < MAPHEIGHT - 1; y++) {
-            for (int x = 1; x < MAPWIDTH - 1; x++) {
+        for (int y = 1; y <= MAPHEIGHT - 2; y++) {
+            for (int x = 1; x <= MAPWIDTH - 2; x++) {
                 int wallCount = countAdjacentWalls(x, y); // 주변 벽의 개수를 셈
-                // 주변 벽이 4개 이상이면 벽(1)으로 설정, 그렇지 않으면 빈 타일(0)로 설정
-                newMapData[y][x] = (wallCount >= BIRTH_THRESHOLD) ? WALL : EMPTY;
+                if (this.mapData[y][x] == EMPTY && wallCount >= BIRTH_THRESHOLD) newMapData[y][x] = WALL;
+                else if (this.mapData[y][x] == WALL && wallCount >= SURVIVAL_THRESHOLD) newMapData[y][x] = WALL;
+                else newMapData[y][x] = EMPTY;
             }
         }
         
@@ -119,12 +108,10 @@ public class CellularAutomata {
     }
     private int countAdjacentWalls(int x, int y) {
         int count = 0;
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                int nx = x + i;
-                int ny = y + j;
-                if ((i != 0 || j != 0) && isValidCoord(nx, ny)) {
-                    if (mapData[ny][nx] == WALL) // 주변 타일이 벽인 경우
+        for (int i = x-1; i <= x+1; i++) {
+            for (int j = y-1; j <= y+1; j++) {
+                if ((i != x || j != y) && isValidCoord(i, j)) {
+                    if (mapData[j][i] == WALL) // 주변 타일이 벽인 경우
                         count++;
                 }
             }
@@ -192,25 +179,31 @@ public class CellularAutomata {
         return room;
     }
 
-    private void connectAllRooms() {
-        // this.rooms의 모든 방이 연결될 수 있도록 길을 뚫는다
-        // this.rooms에서 마지막 방을 제외한 모든 방을 그 다음 차례의 방과 연결한다
-        // this.rooms의 마지막 방의 첫번째 방과 연결한다
+    private void fillTinyRooms() {
+        int minimumSize = Math.round(MAPWIDTH * MAPHEIGHT * 0.025f);
+        for (Vector<Pair> room : rooms) {
+            if (room.size() < minimumSize) {
+                for (Pair cell : room) this.mapData[cell.getY()][cell.getY()] = WALL;
+            }
+        }
+    }
 
-        for (int i = 0; i < this.rooms.size(); i++) {
-            if (i == this.rooms.size() - 1) {
-                connectTwoRooms(i, 0); // 마지막 인덱스의 방을 첫 인덱스의 방과 연결
-            }
-            else {
-                connectTwoRooms(i, i + 1); // 방을 그 다음 인덱스의 방과 연결
-            }
+    private void connectAllRooms() {
+        while (this.rooms.size() > 1) { // 방이 2개 이상일 때,
+            int room1, room2;
+            do {
+                room1 = rng.nextInt(0, this.rooms.size());
+                room2 = rng.nextInt(0, this.rooms.size());
+            } while (room1 != room2);
+            connectTwoRooms(0, 1); // 방을 그 다음 인덱스의 방과 연결
+            this.rooms = identifyAllRooms();
         }
     }
 
     private void connectTwoRooms(int index1, int index2) {
         // 두개의 방에서 각각 임의의 타일을 선택하고 가중치가 부여된 random walk를 사용
         // 목표 지점으로 향하는 방향에 대해 더 많은 가중치를 부여
-        final int LARGE_WEIGHT = 3; // 큰 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
+        final int LARGE_WEIGHT = 2; // 큰 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
         final int SMALL_WEIGHT = 1; // 작은 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
 
         enum Direction {
