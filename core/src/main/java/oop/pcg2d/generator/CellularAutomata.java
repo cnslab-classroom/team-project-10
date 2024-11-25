@@ -210,7 +210,7 @@ public class CellularAutomata {
     private void connectTwoRooms(int index1, int index2) {
         // 두개의 방에서 각각 임의의 타일을 선택하고 가중치가 부여된 random walk를 사용
         // 목표 지점으로 향하는 방향에 대해 더 많은 가중치를 부여
-        final int LARGE_WEIGHT = 10; // 큰 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
+        final int LARGE_WEIGHT = 3; // 큰 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
         final int SMALL_WEIGHT = 1; // 작은 가중치, 이 숫자만큼 해당 방향의 Direction을 movePool에 추가
 
         enum Direction {
