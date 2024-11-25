@@ -12,6 +12,9 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -23,6 +26,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Clipboard;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import oop.pcg2d.generator.CellularAutomata;
@@ -68,6 +72,8 @@ public class MapGenerationScreen extends AbstractScreen {
     private TextButton backButton;
     // 재생성 버튼 변수
     private TextButton regenButton;
+    // 시드 복사 버튼 변수
+    private TextButton copySeedButton;
     // .txt 파일 저장 버튼 변수
     private TextButton saveTxtButton;
     // .png 파일 저장 버튼 변수
@@ -317,6 +323,8 @@ public class MapGenerationScreen extends AbstractScreen {
         savePngButton = new TextButton("Save As PNG", skin);
         // 현재 시드 라벨 생성
         seedLabel = new Label("Current Seed: " + this.seed, skin);
+        // 시드 복사 버튼 생성
+        copySeedButton = new TextButton("Copy Seed", skin);
 
         // 버튼에 클릭 리스너 추가
         backButton.addListener(new ClickListener() {
@@ -332,6 +340,13 @@ public class MapGenerationScreen extends AbstractScreen {
                 // 기존 맵 생성 인자에 seed만 랜덤으로 바꿔 맵 재생성
                 newRandomSeed();
                 generateMap();
+            }
+        });
+        copySeedButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // 현재 시드 클립보드에 복사
+                copySeedToClipboard();
             }
         });
 
@@ -356,6 +371,8 @@ public class MapGenerationScreen extends AbstractScreen {
         topLeftTable.top().left().pad(10);
         topLeftTable.setFillParent(true);
         topLeftTable.add(seedLabel).left();
+        topLeftTable.row();
+        topLeftTable.add(copySeedButton).height(50).space(10).left();
 
         // 상단 오른쪽 테이블 생성
         Table topRightTable = new Table();
@@ -443,6 +460,12 @@ public class MapGenerationScreen extends AbstractScreen {
         });
         // 입력 프로세서 설정
         Gdx.input.setInputProcessor(multiplexer);
+    }
+
+    public void copySeedToClipboard() {
+        StringSelection s = new StringSelection(String.valueOf(this.seed));
+        java.awt.datatransfer.Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+        c.setContents(s, s);
     }
 
     @Override
