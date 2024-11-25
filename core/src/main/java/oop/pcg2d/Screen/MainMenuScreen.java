@@ -44,7 +44,7 @@ public class MainMenuScreen extends AbstractScreen {
         // 배경 이미지보다 나중에 추가되므로, 배경 이미지 위에 테이블의 요소들이 그려짐
 
         // 프로그램 제목 레이블 생성
-        Label titleLabel = new Label("MapGenerator", skin, "title");
+        Label titleLabel = new Label("GeoCrafter", skin, "title");
 
         // 제목을 테이블에 추가
         table.add(titleLabel).pad(10);
