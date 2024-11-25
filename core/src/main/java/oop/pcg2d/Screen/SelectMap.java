@@ -214,31 +214,53 @@ public class SelectMap extends AbstractScreen {
                     // 타일 테마 선택
                     String selectedTileTheme = tileThemeGroup.getChecked().getText().toString();
 
-                    // Rooms and Mazes 알고리즘의 경우 맵 크기가 홀수여야 함
-                    if (selectedAlgorithm.equals("Rooms and Mazes")) {
+
+                    // 알고리즘별 파라미터 가져오기
+                    // Cellular Automata 알고리즘의 경우
+                    if (selectedAlgorithm.equals("Cellular Automata")) {
+                        double fillProb = fillProbSlider.getValue();
+                        // 맵 크기가 250,000 이하이어야 함
+                        if (mapWidth * mapHeight > 250000) {
+                            showErrorDialog("Map size must be smaller then or equal to 250,000 tiles.");
+                            return;
+                        }
+                        // 맵 생성 화면으로 이동
+                        game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
+                                fillProb, isConnected, selectedTileTheme));
+                    }
+                    // Rooms and Mazes 알고리즘의 경우
+                    else if (selectedAlgorithm.equals("Rooms and Mazes")) {
+                        int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
+                        int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
+                        int roomGenAttempt = (int)(roomGenAttemptSlider.getValue());
+
+                        // 맵 크기가 160,000 미만이어야 함
+                        if (mapWidth * mapHeight >= 160000) {
+                            // 오류 메시지 표시
+                            showErrorDialog("Map size must be smaller then 160,000 tiles.");
+                            return;
+                        }
+                        // 맵 크기가 홀수여야 함
                         if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
                             // 오류 메시지 표시
                             showErrorDialog("Map size must be odd numbers for Rooms and Mazes.");
                             return;
                         }
-                    }
-
-                    // 알고리즘별 파라미터 가져오기
-                    if (selectedAlgorithm.equals("Cellular Automata")) {
-                        double fillProb = fillProbSlider.getValue();
-
-                        // 맵 생성 화면으로 이동
-                        game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
-                                fillProb, isConnected, selectedTileTheme));
-                    } else if (selectedAlgorithm.equals("Rooms and Mazes")) {
-                        int roomMinLen = Integer.parseInt(roomMinLenTextField.getText());
-                        int roomMaxLen = Integer.parseInt(roomMaxLenTextField.getText());
-                        int roomGenAttempt = (int)(roomGenAttemptSlider.getValue());
                 
                         // 방 최소/최대 길이가 홀수여야 함
                         if (roomMinLen % 2 == 0 || roomMaxLen % 2 == 0) {
                             // 오류 메시지 표시
                             showErrorDialog("Room min and max lengths must be odd numbers.");
+                            return;
+                        }
+                        // 방 최소 길이는 3이상 이어야 함
+                        if (roomMinLen <= 1) {
+                            showErrorDialog("Room min must be greater than 1.");
+                            return;
+                        }
+                        // 방 최대 길이는 방 최소 길이보다 커야함
+                        if (roomMinLen >= roomMaxLen) {
+                            showErrorDialog("Room max must be greater than Room min.");
                             return;
                         }
 
