@@ -224,6 +224,11 @@ public class SelectMap extends AbstractScreen {
                             showErrorDialog("Map size must be smaller then or equal to 250,000 tiles.");
                             return;
                         }
+                        // 맵 크기는 1 이상이어야 함
+                        if (mapWidth * mapHeight < 1) {
+                            showErrorDialog("Map size must be larger then 1.");
+                            return;
+                        }
                         // 맵 생성 화면으로 이동
                         game.setScreen(new MapGenerationScreen(game, SelectMap.this, mapWidth, mapHeight, seed,
                                 fillProb, isConnected, selectedTileTheme));
@@ -240,13 +245,17 @@ public class SelectMap extends AbstractScreen {
                             showErrorDialog("Map size must be smaller then 160,000 tiles.");
                             return;
                         }
+                        // 맵 크기는 1 이상이어야 함
+                        if (mapWidth * mapHeight < 1) {
+                            showErrorDialog("Map size must be larger then 1.");
+                            return;
+                        }
                         // 맵 크기가 홀수여야 함
                         if (mapWidth % 2 == 0 || mapHeight % 2 == 0) {
                             // 오류 메시지 표시
                             showErrorDialog("Map size must be odd numbers for Rooms and Mazes.");
                             return;
                         }
-                
                         // 방 최소/최대 길이가 홀수여야 함
                         if (roomMinLen % 2 == 0 || roomMaxLen % 2 == 0) {
                             // 오류 메시지 표시

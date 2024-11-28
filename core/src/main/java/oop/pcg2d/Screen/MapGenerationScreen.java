@@ -511,7 +511,7 @@ public class MapGenerationScreen extends AbstractScreen {
         camera.viewportHeight = height;
 
         // 카메라의 줌 상태를 유지하며 업데이트
-        camera.update();
+        updateCamera();
         camera.zoom = currentZoom;
 
         // 스테이지의 뷰포트 업데이트
